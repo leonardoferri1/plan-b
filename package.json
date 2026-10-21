@@ -1,0 +1,36 @@
+{
+  "name": "spacecraft",
+  "private": true,
+  "version": "0.1.0",
+  "description": "SpaceCraft — interactive 2D/3D interior design studio",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @spacecraft/web dev",
+    "dev:api": "pnpm --filter @spacecraft/api start:dev",
+    "dev:all": "pnpm --parallel --filter @spacecraft/web --filter @spacecraft/api dev",
+    "build": "pnpm --filter @spacecraft/shared build && pnpm --filter @spacecraft/web build && pnpm --filter @spacecraft/api build",
+    "test": "pnpm --filter @spacecraft/shared test && pnpm --filter @spacecraft/web test && pnpm --filter @spacecraft/api test",
+    "test:e2e": "pnpm --filter @spacecraft/web test:e2e",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml}\"",
+    "typecheck": "pnpm -r typecheck",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @spacecraft/api prisma:migrate",
+    "db:seed": "pnpm --filter @spacecraft/api prisma:seed"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.15.0",
+    "eslint": "9.15.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-react-hooks": "5.0.0",
+    "globals": "15.12.0",
+    "prettier": "3.3.3",
+    "typescript": "5.6.3",
+    "typescript-eslint": "8.15.0"
+  }
+}
