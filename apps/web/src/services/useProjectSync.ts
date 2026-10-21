@@ -142,7 +142,12 @@ export function useAutosave(enabled: boolean): void {
     };
 
     async function save(): Promise<void> {
-      if (inFlight.current) return;
+      // A command that lands mid-save re-marks the document dirty; retrying rather than
+      // dropping the attempt is what keeps it from sitting dirty forever.
+      if (inFlight.current) {
+        timer.current = setTimeout(() => void save(), AUTOSAVE_DELAY_MS);
+        return;
+      }
       inFlight.current = true;
 
       const store = useProjectStore.getState();
