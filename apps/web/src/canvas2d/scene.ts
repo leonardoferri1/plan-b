@@ -65,6 +65,7 @@ export interface SceneOpening {
   width: number;
   thickness: number;
   flipped: boolean;
+  swingReversed: boolean;
   source: Opening;
 }
 
@@ -240,6 +241,7 @@ export function buildScene(level: Level): PlanScene {
       width: opening.width,
       thickness: wall.thickness,
       flipped: opening.flipped,
+      swingReversed: opening.swingReversed,
       source: opening,
     };
 

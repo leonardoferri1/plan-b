@@ -148,16 +148,16 @@ vistas de divergirem.
 
 ## Modelo de dados
 
-| Entidade        | Campos principais                                                |
-| --------------- | ---------------------------------------------------------------- |
-| `WallNode`      | `id, x, y` — canto compartilhado entre paredes                   |
-| `Wall`          | `id, a, b, thickness, height, materialId`                        |
-| `Opening`       | `id, wallId, kind, offset, width, height, sillHeight, flipped`   |
-| `Room`          | `id, name, nodeIds[], floorMaterialId, autoNamed`                |
-| `FurnitureItem` | `id, catalogId, position, rotation, size, materialId, elevation` |
-| `Level`         | `id, name, elevation, nodes/walls/openings/rooms/furniture`      |
-| `FloorPlan`     | `schemaVersion, levels[], settings`                              |
-| `Project`       | `id, name, plan, createdAt, updatedAt, workspaceId?`             |
+| Entidade        | Campos principais                                                       |
+| --------------- | ----------------------------------------------------------------------- |
+| `WallNode`      | `id, x, y` — canto compartilhado entre paredes                          |
+| `Wall`          | `id, a, b, thickness, height, materialId`                               |
+| `Opening`       | `id, wallId, kind, offset, width, height, sill, flipped, swingReversed` |
+| `Room`          | `id, name, nodeIds[], floorMaterialId, autoNamed`                       |
+| `FurnitureItem` | `id, catalogId, position, rotation, size, materialId, elevation`        |
+| `Level`         | `id, name, elevation, nodes/walls/openings/rooms/furniture`             |
+| `FloorPlan`     | `schemaVersion, levels[], settings`                                     |
+| `Project`       | `id, name, plan, createdAt, updatedAt, workspaceId?`                    |
 
 **Paredes são um grafo, não uma lista de segmentos.** Cada parede referencia dois `WallNode`
 por id. É isso que permite arrastar um canto e mover todas as paredes conectadas, detectar
@@ -174,12 +174,19 @@ parede arrastada ou dividida.
 o centro do vão, ao longo da linha de eixo. Mover a parede leva as aberturas junto; encurtá-la
 reposiciona (ou estreita) o que não cabe mais.
 
+Uma porta tem dois eixos independentes: `flipped` escolhe a ponta onde fica a dobradiça (a
+"mão") e `swingReversed` escolhe para qual face da parede ela abre. Juntos dão as quatro
+combinações que uma porta real tem, e o símbolo em planta e a folha no 3D leem os mesmos dois
+booleanos.
+
 ### Versionamento e migração
 
 `FloorPlan.schemaVersion` acompanha o formato gravado. Toda leitura — arquivo importado, entrada
 do `localStorage` ou linha do banco — passa por `migratePlan()` antes da validação. A cadeia de
-migrações está em `packages/shared/src/schema/migrations.ts`; hoje a versão corrente é `1`, e a
-máquina existe para que adicionar a `2` não exija tocar em nenhum ponto de chamada. Um arquivo
+migrações está em `packages/shared/src/schema/migrations.ts`. A versão corrente é `2`: a `1` não
+conhecia o lado de abertura da porta, e a migração o adiciona. Nenhum ponto de chamada precisou
+mudar — os schemas zod que guardam a API, o arquivo importado e o `localStorage` já migram o
+que recebem. Um arquivo
 gravado por uma versão mais nova é recusado com uma mensagem clara em vez de ser lido pela
 metade.
 
@@ -299,7 +306,7 @@ o JSON.
 ## Testes
 
 ```bash
-pnpm test        # 229 testes unitários (98 shared · 99 web · 32 api)
+pnpm test        # 254 testes unitários (104 shared · 118 web · 32 api)
 pnpm test:e2e    # 16 fluxos ponta a ponta
 ```
 
@@ -344,6 +351,9 @@ CAPTURE_SCREENSHOTS=1 pnpm --filter @spacecraft/web test:e2e screenshots
 - **Sem exportação em PDF ou link público.** Tratados como melhorias futuras no escopo original.
 - **Sem persistência de histórico.** Desfazer/refazer vive na sessão; recarregar a página zera a
   pilha (o documento, esse sim, é recuperado).
+- **Cliente novo contra servidor antigo é recusado.** A API valida contra a sua própria cópia do
+  schema, então um plano de versão mais nova volta `400` em vez de ser gravado pela metade. É o
+  comportamento seguro, mas significa que front e back sobem juntos.
 
 ---
 

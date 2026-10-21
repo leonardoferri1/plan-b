@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createSamplePlan, createSampleProject } from '../samples/apartment';
 import { CURRENT_SCHEMA_VERSION } from '../domain/types';
-import { validateFloorPlan } from './plan';
+import { floorPlanSchema, migratableFloorPlanSchema, validateFloorPlan } from './plan';
 import { parseProject } from './project';
 import { UnsupportedSchemaVersionError, detectSchemaVersion, migratePlan } from './migrations';
 
@@ -101,6 +101,65 @@ describe('parseProject', () => {
   it('rejects a project without a name', () => {
     const project = { ...createSampleProject(), name: '' };
     expect(parseProject(project).ok).toBe(false);
+  });
+});
+
+describe('schema v1 -> v2', () => {
+  /** A plan as an older build would have written it: no swing side on the openings. */
+  const legacyPlan = (): Record<string, unknown> => {
+    const plan = JSON.parse(JSON.stringify(createSamplePlan()));
+    plan.schemaVersion = 1;
+    for (const level of plan.levels) {
+      for (const opening of level.openings) delete opening.swingReversed;
+    }
+    return plan;
+  };
+
+  it('a v1 plan no longer validates on its own', () => {
+    expect(floorPlanSchema.safeParse(legacyPlan()).success).toBe(false);
+  });
+
+  it('migration adds the swing side and bumps the version', () => {
+    const migrated = migratePlan(legacyPlan()) as Record<string, unknown>;
+
+    expect(migrated.schemaVersion).toBe(2);
+    const openings = (migrated.levels as { openings: { swingReversed: boolean }[] }[])[0]!.openings;
+    expect(openings.length).toBeGreaterThan(0);
+    expect(openings.every((opening) => opening.swingReversed === false)).toBe(true);
+  });
+
+  it('the migrating schema accepts a v1 plan and hands back a v2 one', () => {
+    const result = migratableFloorPlanSchema.safeParse(legacyPlan());
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const plan = result.data as ReturnType<typeof createSamplePlan>;
+      expect(plan.schemaVersion).toBe(2);
+      expect(plan.levels[0]!.openings[0]!.swingReversed).toBe(false);
+    }
+  });
+
+  it('leaves everything else about the plan alone', () => {
+    const migrated = migratePlan(legacyPlan()) as ReturnType<typeof createSamplePlan>;
+    const current = createSamplePlan();
+
+    expect(migrated.levels[0]!.walls).toEqual(current.levels[0]!.walls);
+    expect(migrated.levels[0]!.furniture).toEqual(current.levels[0]!.furniture);
+  });
+
+  it('a v1 project file imports without complaint', () => {
+    const project = JSON.parse(JSON.stringify(createSampleProject()));
+    project.plan = legacyPlan();
+
+    const result = parseProject(project);
+
+    expect(result.errors).toEqual([]);
+    expect(result.project?.plan.schemaVersion).toBe(2);
+  });
+
+  it('migrating an already-current plan changes nothing', () => {
+    const plan = createSamplePlan();
+    expect(migratePlan(JSON.parse(JSON.stringify(plan)))).toEqual(plan);
   });
 });
 

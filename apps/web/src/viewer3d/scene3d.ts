@@ -215,8 +215,11 @@ export function buildScene3D(level: Level): Scene3D {
           ownerId: opening.id,
         });
       } else {
-        // A door leaf standing open, hinged on the same side the plan symbol swings from.
+        // A door leaf standing open. The hand picks the hinged end, the swing side picks which
+        // face of the wall it sweeps across — the same two booleans the plan symbol reads, so
+        // the two views always show the same door.
         const hingeSign = opening.flipped ? 1 : -1;
+        const swingSign = opening.swingReversed ? -1 : 1;
         const hinge: [number, number, number] = [
           center[0] + (direction.x * hingeSign * opening.width) / 2,
           0,
@@ -227,7 +230,7 @@ export function buildScene3D(level: Level): Scene3D {
           key: `${opening.id}:leaf`,
           position: hinge,
           size: [opening.width - FRAME_THICKNESS, opening.height - FRAME_THICKNESS, 0.04],
-          rotationY: planRotationToThree(angle + (hingeSign * Math.PI) / 2),
+          rotationY: planRotationToThree(angle + (hingeSign * swingSign * Math.PI) / 2),
           materialId: 'white-plaster',
           ownerId: opening.id,
         });

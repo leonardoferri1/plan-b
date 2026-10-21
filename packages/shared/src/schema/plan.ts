@@ -3,6 +3,7 @@ import { CURRENT_SCHEMA_VERSION, GEOMETRY_LIMITS } from '../domain/types';
 import type { FloorPlan, Level } from '../domain/types';
 import { catalogExists } from '../catalog/furniture';
 import { materialExists } from '../catalog/materials';
+import { migratePlan } from './migrations';
 
 const finite = (label: string) =>
   z
@@ -47,6 +48,7 @@ export const openingSchema = z.object({
   height: z.number().min(GEOMETRY_LIMITS.minOpeningHeight).max(GEOMETRY_LIMITS.maxWallHeight),
   sillHeight: z.number().min(0).max(GEOMETRY_LIMITS.maxWallHeight),
   flipped: z.boolean(),
+  swingReversed: z.boolean(),
 });
 
 export const roomSchema = z.object({
@@ -159,6 +161,15 @@ export const floorPlanSchema = z.object({
   levels: z.array(levelSchema).min(1, 'A planta precisa de ao menos um pavimento.'),
   settings: planSettingsSchema,
 });
+
+/**
+ * The plan as it arrives from outside: an imported file, a stored payload or a request body.
+ *
+ * Running the migration chain inside the schema means every boundary accepts documents written
+ * by an older build and hands back a current one — which is the whole reason for versioning
+ * the format in the first place.
+ */
+export const migratableFloorPlanSchema = z.preprocess(migratePlan, floorPlanSchema);
 
 export type FloorPlanInput = z.input<typeof floorPlanSchema>;
 export type FloorPlanOutput = z.output<typeof floorPlanSchema>;

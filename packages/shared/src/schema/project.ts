@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { Project } from '../domain/types';
-import { floorPlanSchema } from './plan';
-import { migratePlan } from './migrations';
+import { migratableFloorPlanSchema } from './plan';
 
 export const projectNameSchema = z
   .string()
@@ -12,7 +11,7 @@ export const projectNameSchema = z
 export const projectSchema = z.object({
   id: z.string().min(1),
   name: projectNameSchema,
-  plan: floorPlanSchema,
+  plan: migratableFloorPlanSchema,
   createdAt: z.string().datetime({ offset: true }).or(z.string().datetime()),
   updatedAt: z.string().datetime({ offset: true }).or(z.string().datetime()),
   workspaceId: z.string().min(1).optional(),
@@ -21,14 +20,14 @@ export const projectSchema = z.object({
 /** Body accepted by `POST /projects`. */
 export const createProjectSchema = z.object({
   name: projectNameSchema,
-  plan: floorPlanSchema,
+  plan: migratableFloorPlanSchema,
 });
 
 /** Body accepted by `PATCH /projects/:id` — every field is optional. */
 export const updateProjectSchema = z
   .object({
     name: projectNameSchema.optional(),
-    plan: floorPlanSchema.optional(),
+    plan: migratableFloorPlanSchema.optional(),
   })
   .refine((body) => body.name !== undefined || body.plan !== undefined, {
     message: 'Envie ao menos um campo para atualizar.',
@@ -73,9 +72,8 @@ export function parseProject(value: unknown): ProjectParseResult {
     return { ok: false, errors: ['O arquivo não contém um projeto válido.'] };
   }
 
-  const candidate = value as Record<string, unknown>;
-  const migrated = { ...candidate, plan: migratePlan(candidate.plan) };
-  const result = projectSchema.safeParse(migrated);
+  // `projectSchema` migrates the nested plan itself, so the payload goes in untouched.
+  const result = projectSchema.safeParse(value);
 
   if (result.success) {
     return { ok: true, project: result.data as Project, errors: [] };

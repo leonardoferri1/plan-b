@@ -10,7 +10,7 @@
  */
 
 /** Current persisted schema version. Bump whenever the shape of `FloorPlan` changes. */
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 
 export interface Vec2 {
   x: number;
@@ -51,8 +51,16 @@ export interface Opening {
   height: number;
   /** Distance from the floor to the bottom of the opening. Doors use 0. */
   sillHeight: number;
-  /** Mirrors the door swing symbol in the plan view. */
+  /**
+   * Which end of the opening the door is hinged on — its "hand". Mirrors the leaf along the
+   * wall without changing which side of it the door opens to.
+   */
   flipped: boolean;
+  /**
+   * Which side of the wall the door opens towards. Independent of {@link flipped}: together
+   * the two booleans give the four hand/swing combinations a real door can have.
+   */
+  swingReversed: boolean;
 }
 
 export interface Room {

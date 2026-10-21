@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createSampleProject, currentLevel } from '@spacecraft/shared';
+import { CURRENT_SCHEMA_VERSION, createSampleProject, currentLevel } from '@spacecraft/shared';
 import { addFurniture, deleteEntities, moveFurniture } from '@/editor/commands';
 import {
   selectCanRedo,
@@ -141,7 +141,7 @@ describe('useProjectStore', () => {
     const project = store().toProject();
 
     expect(project.name).toBe('Apartamento Aurora');
-    expect(project.plan.schemaVersion).toBe(1);
+    expect(project.plan.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(project.plan.levels[0]?.rooms).toHaveLength(5);
   });
 });

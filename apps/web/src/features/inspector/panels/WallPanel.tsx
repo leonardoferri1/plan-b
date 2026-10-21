@@ -9,7 +9,7 @@ import {
   type Wall,
 } from '@spacecraft/shared';
 import { Button } from '@/components/ui/button';
-import { deleteEntities, setWallProperties } from '@/editor/commands';
+import { deleteEntities, setWallLength, setWallProperties } from '@/editor/commands';
 import { useProjectStore } from '@/store/project-store';
 import { useEditorStore } from '@/store/editor-store';
 import { FieldRow, InspectorHeader, Section } from '../Section';
@@ -34,7 +34,18 @@ export function WallPanel({ wall }: { wall: Wall }): JSX.Element {
     <>
       <InspectorHeader eyebrow="Parede" title={formatMeters(length)} />
 
-      <Section title="Seção">
+      <Section title="Geometria">
+        <NumberField
+          label="Comprimento"
+          unit="m"
+          value={length}
+          decimals={2}
+          step={0.1}
+          min={0.2}
+          max={60}
+          onChange={(value) => dispatch(setWallLength(wall.id, value))}
+        />
+
         <FieldRow>
           <NumberField
             label="Espessura"
@@ -57,9 +68,10 @@ export function WallPanel({ wall }: { wall: Wall }): JSX.Element {
             onChange={(value) => dispatch(setWallProperties(wall.id, { height: value }))}
           />
         </FieldRow>
+
         <p className="text-[10px] leading-relaxed text-muted-foreground">
-          O comprimento é definido pelos cantos. Selecione a parede e arraste um canto na planta
-          para alterá-lo.
+          O primeiro canto fica fixo e o segundo desliza na direção da parede. Tudo o que estiver
+          ligado ao canto que se move acompanha — como ao arrastá-lo na planta.
         </p>
       </Section>
 

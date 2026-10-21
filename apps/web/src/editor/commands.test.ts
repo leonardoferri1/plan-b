@@ -23,6 +23,7 @@ import {
   rotateFurniture,
   setOpeningProperties,
   setRoomProperties,
+  setWallLength,
   setWallProperties,
   type PlanCommand,
 } from './commands';
@@ -175,6 +176,138 @@ describe('moveNode', () => {
       expect(opening.offset - opening.width / 2).toBeGreaterThanOrEqual(-1e-6);
       expect(opening.offset + opening.width / 2).toBeLessThanOrEqual(span + 1e-6);
     }
+  });
+});
+
+describe('chained wall drawing', () => {
+  /** Mirrors the canvas tool: each click hands on a bare point, with no node id. */
+  const chain = (points: { x: number; y: number }[]): FloorPlan =>
+    points
+      .slice(0, -1)
+      .reduce(
+        (plan, point, index) =>
+          apply(plan, addWall({ from: { point }, to: { point: points[index + 1]! } })),
+        createEmptyPlan(),
+      );
+
+  it('reuses the corner instead of stacking two nodes on it', () => {
+    const plan = chain([
+      { x: 0, y: 0 },
+      { x: 4, y: 0 },
+      { x: 4, y: 3 },
+    ]);
+
+    expect(level(plan).walls).toHaveLength(2);
+    expect(level(plan).nodes).toHaveLength(3);
+
+    const [first, second] = level(plan).walls;
+    const shared = [first!.a, first!.b].filter((id) => id === second!.a || id === second!.b);
+    expect(shared).toHaveLength(1);
+  });
+
+  it('closes a hand-drawn rectangle into a room', () => {
+    const plan = chain([
+      { x: 0, y: 0 },
+      { x: 5, y: 0 },
+      { x: 5, y: 4 },
+      { x: 0, y: 4 },
+      { x: 0, y: 0 },
+    ]);
+
+    expect(level(plan).nodes).toHaveLength(4);
+    expect(level(plan).walls).toHaveLength(4);
+    expect(level(plan).rooms).toHaveLength(1);
+    expect(roomArea(level(plan).rooms[0]!, level(plan))).toBeCloseTo(20);
+  });
+
+  it('merges a wall drawn onto an existing corner from elsewhere', () => {
+    let plan = chain([
+      { x: 0, y: 0 },
+      { x: 4, y: 0 },
+    ]);
+
+    plan = apply(plan, addWall({ from: { point: { x: 4, y: 0 } }, to: { point: { x: 4, y: 3 } } }));
+
+    expect(level(plan).nodes).toHaveLength(3);
+  });
+});
+
+describe('setWallLength', () => {
+  const singleWall = (): FloorPlan =>
+    apply(
+      createEmptyPlan(),
+      addWall({ from: { point: { x: 1, y: 1 } }, to: { point: { x: 5, y: 1 } } }),
+    );
+
+  const measure = (plan: FloorPlan): number =>
+    wallLength(level(plan).walls[0]!, buildNodeMap(level(plan).nodes));
+
+  it('lengthens the wall keeping the first corner fixed', () => {
+    const base = singleWall();
+    const plan = apply(base, setWallLength(level(base).walls[0]!.id, 6));
+    const nodes = level(plan).nodes;
+
+    expect(measure(plan)).toBeCloseTo(6);
+    expect(nodes.find((node) => node.id === level(plan).walls[0]!.a)).toMatchObject({ x: 1, y: 1 });
+  });
+
+  it('can keep the second corner fixed instead', () => {
+    const base = singleWall();
+    const wallId = level(base).walls[0]!.id;
+    const plan = apply(base, setWallLength(wallId, 2, 'b'));
+
+    expect(measure(plan)).toBeCloseTo(2);
+    expect(level(plan).nodes.find((node) => node.id === level(plan).walls[0]!.b)).toMatchObject({
+      x: 5,
+      y: 1,
+    });
+  });
+
+  it('keeps the wall on its own axis', () => {
+    const base = singleWall();
+    const plan = apply(base, setWallLength(level(base).walls[0]!.id, 9));
+
+    for (const node of level(plan).nodes) expect(node.y).toBeCloseTo(1);
+  });
+
+  it('clamps to the geometric limits', () => {
+    const base = singleWall();
+    const wallId = level(base).walls[0]!.id;
+
+    expect(measure(apply(base, setWallLength(wallId, 0.01)))).toBeCloseTo(0.2);
+    expect(measure(apply(base, setWallLength(wallId, 500)))).toBeCloseTo(60);
+  });
+
+  it('drags everything attached to the moving corner', () => {
+    const base = apply(
+      singleWall(),
+      addWall({ from: { point: { x: 5, y: 1 } }, to: { point: { x: 5, y: 4 } } }),
+    );
+
+    const plan = apply(base, setWallLength(level(base).walls[0]!.id, 6));
+    const nodes = buildNodeMap(level(plan).nodes);
+
+    // The second wall still starts where the first one ends.
+    expect(wallLength(level(plan).walls[0]!, nodes)).toBeCloseTo(6);
+    expect(nodes.get(level(plan).walls[1]!.a)).toMatchObject({ x: 7, y: 1 });
+  });
+
+  it('keeps openings inside a wall that was shortened', () => {
+    const base = apply(singleWall(), addOpening({ wallId: '', kind: 'door', offset: 0 }));
+    const wallId = level(base).walls[0]!.id;
+    const withDoor = apply(base, addOpening({ wallId, kind: 'door', offset: 3.2, width: 0.9 }));
+
+    const plan = apply(withDoor, setWallLength(wallId, 1.5));
+    const opening = level(plan).openings[0]!;
+
+    expect(opening.offset + opening.width / 2).toBeLessThanOrEqual(1.5 + 1e-6);
+  });
+
+  it('is a no-op for an unchanged length', () => {
+    const base = singleWall();
+    const result = runCommand(base, setWallLength(level(base).walls[0]!.id, 4));
+
+    expect(result.entry).toBeNull();
   });
 });
 

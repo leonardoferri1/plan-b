@@ -32,6 +32,7 @@ const opening = (overrides: Partial<Opening> = {}): Opening => ({
   height: 1.2,
   sillHeight: 0.9,
   flipped: false,
+  swingReversed: false,
   ...overrides,
 });
 

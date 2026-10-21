@@ -205,22 +205,40 @@ function drawWalls(ctx: CanvasRenderingContext2D, options: RenderOptions): void 
   ctx.restore();
 }
 
+/**
+ * Paints the walls as a single solid body.
+ *
+ * Every wall is stroked first, then every wall is filled on top. Because a stroke straddles
+ * its edge, the fills cover its inner half — and, at a junction where two walls overlap, they
+ * cover the neighbour's buried edges entirely. What survives is the outline of the union: the
+ * mitred corner an architect would draw, rather than two rectangles with a seam across them.
+ */
 function paintWallBodies(ctx: CanvasRenderingContext2D, options: RenderOptions): void {
   const { scene, view, selection, hovered } = options;
 
+  const fillFor = (id: string): string => {
+    if (isSelectedRef(selection, 'wall', id)) return PLAN_COLORS.selection;
+    if (!options.chrome && isHoveredRef(hovered, 'wall', id)) return '#e8eefb';
+    return PLAN_COLORS.wallFill;
+  };
+
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'miter';
   for (const wall of scene.walls) {
     tracePolygon(ctx, wall.quad.points, view);
-
-    const selected = isSelectedRef(selection, 'wall', wall.id);
-    const hover = !options.chrome && isHoveredRef(hovered, 'wall', wall.id);
-
-    ctx.fillStyle = selected ? PLAN_COLORS.selection : hover ? '#e8eefb' : PLAN_COLORS.wallFill;
-    ctx.fill();
-
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = selected ? PLAN_COLORS.selection : PLAN_COLORS.wallStroke;
+    ctx.strokeStyle = isSelectedRef(selection, 'wall', wall.id)
+      ? PLAN_COLORS.selection
+      : PLAN_COLORS.wallStroke;
     ctx.stroke();
   }
+
+  for (const wall of scene.walls) {
+    tracePolygon(ctx, wall.quad.points, view);
+    ctx.fillStyle = fillFor(wall.id);
+    ctx.fill();
+  }
+
+  ctx.lineJoin = 'round';
 }
 
 /** Rectangle covering the opening span across the full wall thickness. */
@@ -284,7 +302,11 @@ function drawDoorSymbol(
   const direction = opening.flipped
     ? { x: -opening.direction.x, y: -opening.direction.y }
     : opening.direction;
-  const swing = opening.normal;
+  // The hand decides which end carries the hinge; the swing side decides which face of the
+  // wall the leaf sweeps across. They are independent, so a door has four valid arrangements.
+  const swing = opening.swingReversed
+    ? { x: -opening.normal.x, y: -opening.normal.y }
+    : opening.normal;
 
   const hingeScreen = worldToScreen(hinge, view);
   const radius = metersToPixels(opening.width, view);

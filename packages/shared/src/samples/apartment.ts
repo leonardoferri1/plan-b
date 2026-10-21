@@ -85,6 +85,7 @@ const door = (
   height: 2.1,
   sillHeight: 0,
   flipped,
+  swingReversed: false,
 });
 
 const window_ = (
@@ -103,6 +104,7 @@ const window_ = (
   height,
   sillHeight,
   flipped: false,
+  swingReversed: false,
 });
 
 const OPENINGS: Opening[] = [

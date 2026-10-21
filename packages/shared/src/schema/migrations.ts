@@ -12,7 +12,27 @@ type RawPlan = Record<string, unknown>;
 export type Migration = (plan: RawPlan) => RawPlan;
 
 export const MIGRATIONS: Record<number, Migration> = {
-  // 1: (plan) => ({ ...plan, schemaVersion: 2, /* … */ }),
+  /**
+   * v2 split the door's hand from its swing side. Plans written by v1 only knew the hand, and
+   * every one of their doors swung to the wall's left-hand side — which is what `false` means.
+   */
+  1: (plan) => ({
+    ...plan,
+    levels: Array.isArray(plan.levels)
+      ? plan.levels.map((level) => {
+          const typed = level as RawPlan;
+          return {
+            ...typed,
+            openings: Array.isArray(typed.openings)
+              ? typed.openings.map((opening) => ({
+                  ...(opening as RawPlan),
+                  swingReversed: false,
+                }))
+              : typed.openings,
+          };
+        })
+      : plan.levels,
+  }),
 };
 
 export function detectSchemaVersion(plan: unknown): number {

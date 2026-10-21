@@ -14,6 +14,8 @@ import {
   requireCatalogItem,
   syncRooms,
   toWallLocal,
+  wallDirection,
+  wallEndpoints,
   wallLength,
 } from '@spacecraft/shared';
 import type {
@@ -39,6 +41,9 @@ import type { CommandLike } from './history';
 export type PlanCommand = CommandLike<FloorPlan>;
 
 const level = (plan: FloorPlan): Level => currentLevel(plan);
+
+/** Two corners closer than this are the same corner. The snap already quantises positions. */
+const NODE_MERGE_EPSILON = 1e-6;
 
 const findWall = (lvl: Level, id: string): Wall | undefined =>
   lvl.walls.find((wall) => wall.id === id);
@@ -108,11 +113,21 @@ function splitWallAt(lvl: Level, wallId: string, point: Vec2): string | null {
   return nodeId;
 }
 
-/** Resolves an anchor to a node id, creating or splitting as needed. */
+/**
+ * Resolves an anchor to a node id, creating or splitting as needed.
+ *
+ * A point that coincides with an existing node always resolves to that node. Without this,
+ * two walls meeting at a corner end up on two different nodes at the same coordinate: they
+ * look joined but the graph is severed there, so the junction never thickens, the corner
+ * cannot be dragged as one, and a loop closed by hand never becomes a room.
+ */
 function resolveAnchor(lvl: Level, anchor: WallAnchor): string | null {
   if (anchor.nodeId && lvl.nodes.some((node) => node.id === anchor.nodeId)) {
     return anchor.nodeId;
   }
+
+  const coincident = lvl.nodes.find((node) => distance(node, anchor.point) < NODE_MERGE_EPSILON);
+  if (coincident) return coincident.id;
 
   if (anchor.wallId) {
     const nodeId = splitWallAt(lvl, anchor.wallId, anchor.point);
@@ -279,6 +294,60 @@ export function moveWall(wallId: string, delta: Vec2): PlanCommand {
   };
 }
 
+/**
+ * Sets a wall's length by sliding one endpoint along its own direction.
+ *
+ * `anchor` names the end that stays put, so the inspector can lengthen a wall without the
+ * whole plan shifting. Everything attached to the moving corner travels with it, exactly as
+ * it would when dragging that corner on the canvas.
+ */
+export function setWallLength(
+  wallId: string,
+  length: number,
+  anchor: 'a' | 'b' = 'a',
+): PlanCommand {
+  return {
+    type: 'wall.length',
+    label: 'Ajustar comprimento',
+    coalesceKey: `wall.length:${wallId}`,
+    mutate(plan) {
+      const lvl = level(plan);
+      const wall = findWall(lvl, wallId);
+      if (!wall) return;
+
+      const nodes = buildNodeMap(lvl.nodes);
+      const ends = wallEndpoints(wall, nodes);
+      if (!ends) return;
+
+      const target = Math.min(
+        GEOMETRY_LIMITS.maxWallLength,
+        Math.max(GEOMETRY_LIMITS.minWallLength, length),
+      );
+
+      const direction = wallDirection(wall, nodes);
+      const fixed = anchor === 'a' ? ends.a : ends.b;
+      const movingId = anchor === 'a' ? wall.b : wall.a;
+      const sign = anchor === 'a' ? 1 : -1;
+
+      const moving = lvl.nodes.find((node) => node.id === movingId);
+      if (!moving) return;
+
+      const next = {
+        x: fixed.x + direction.x * target * sign,
+        y: fixed.y + direction.y * target * sign,
+      };
+
+      if (distance(moving, next) < NODE_MERGE_EPSILON) return;
+
+      moving.x = next.x;
+      moving.y = next.y;
+
+      clampOpeningsOfNode(lvl, movingId);
+      syncRooms(lvl);
+    },
+  };
+}
+
 export function setWallProperties(
   wallId: string,
   patch: Partial<Pick<Wall, 'thickness' | 'height' | 'materialId'>>,
@@ -365,6 +434,7 @@ export function addOpening(options: AddOpeningOptions): PlanCommand {
         height: options.height ?? defaults.height,
         sillHeight: options.sillHeight ?? defaults.sill,
         flipped: false,
+        swingReversed: false,
       };
 
       const nodes = buildNodeMap(lvl.nodes);
@@ -421,7 +491,9 @@ export function moveOpening(openingId: string, offset: number): PlanCommand {
 
 export function setOpeningProperties(
   openingId: string,
-  patch: Partial<Pick<Opening, 'width' | 'height' | 'sillHeight' | 'flipped' | 'kind'>>,
+  patch: Partial<
+    Pick<Opening, 'width' | 'height' | 'sillHeight' | 'flipped' | 'swingReversed' | 'kind'>
+  >,
 ): PlanCommand {
   return {
     type: 'opening.update',

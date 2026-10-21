@@ -1,4 +1,4 @@
-import { FlipHorizontal, Trash2 } from 'lucide-react';
+import { FlipHorizontal, FlipVertical, Trash2 } from 'lucide-react';
 import {
   buildNodeMap,
   currentLevel,
@@ -104,16 +104,30 @@ export function OpeningPanel({ opening }: { opening: Opening }): JSX.Element {
       <Section>
         <div className="flex flex-col gap-2">
           {isDoor ? (
-            <Button
-              variant="subtle"
-              size="sm"
-              onClick={() =>
-                dispatch(setOpeningProperties(opening.id, { flipped: !opening.flipped }))
-              }
-            >
-              <FlipHorizontal />
-              Inverter abertura
-            </Button>
+            <>
+              <Button
+                variant="subtle"
+                size="sm"
+                onClick={() =>
+                  dispatch(setOpeningProperties(opening.id, { flipped: !opening.flipped }))
+                }
+              >
+                <FlipHorizontal />
+                Trocar lado da dobradiça
+              </Button>
+              <Button
+                variant="subtle"
+                size="sm"
+                onClick={() =>
+                  dispatch(
+                    setOpeningProperties(opening.id, { swingReversed: !opening.swingReversed }),
+                  )
+                }
+              >
+                <FlipVertical />
+                Abrir para o outro lado
+              </Button>
+            </>
           ) : null}
 
           {wall ? (
