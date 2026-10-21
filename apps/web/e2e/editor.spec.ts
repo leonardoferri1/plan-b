@@ -209,6 +209,21 @@ test('exports the plan as a PNG image', async ({ page }) => {
   expect(download.suggestedFilename()).toMatch(/\.png$/);
 });
 
+test('captures the 3D view as a PNG', async ({ page }) => {
+  await page.getByRole('radio', { name: '3D' }).click();
+  // Give the scene a frame or two to register its renderer before capturing it.
+  await expect(page.getByRole('radio', { name: 'Perspectiva' })).toBeVisible();
+  await page.waitForTimeout(1500);
+
+  const downloadPromise = page.waitForEvent('download');
+
+  await page.getByRole('button', { name: 'Exportar' }).click();
+  await page.getByRole('menuitem', { name: 'Captura da vista 3D' }).click();
+
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/-3d-.*\.png$/);
+});
+
 test('lists the project in the library', async ({ page }) => {
   await page.getByRole('link', { name: 'Projetos' }).click();
 

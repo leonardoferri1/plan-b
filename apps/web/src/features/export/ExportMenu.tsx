@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { exportPlanPng } from '@/export/export-png';
 import { exportProjectJson, parseProjectFile, pickProjectFile } from '@/export/project-file';
-import { captureScene, hasScene } from '@/export/screenshot-3d';
+import { captureScene } from '@/export/screenshot-3d';
 import { adoptImportedProject, saveNow } from '@/services/useProjectSync';
 import { useEditorStore } from '@/store/editor-store';
 import { useProjectStore } from '@/store/project-store';
@@ -126,7 +126,11 @@ export function ExportMenu(): JSX.Element {
         </DropdownMenuItem>
         <DropdownMenuItem
           onSelect={() => void handleScreenshot()}
-          disabled={viewMode === '2d' || !hasScene()}
+          // `hasScene()` is a plain module lookup, not reactive state: the 3D canvas registers
+          // itself after this menu has rendered, so gating on it here would leave the item
+          // stuck disabled. The view mode is the reactive signal; `captureScene` still reports
+          // a missing renderer as a toast.
+          disabled={viewMode === '2d'}
         >
           <Camera />
           Captura da vista 3D

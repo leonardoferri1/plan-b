@@ -297,7 +297,7 @@ o JSON.
 
 ```bash
 pnpm test        # 218 testes unitários (98 shared · 99 web · 21 api)
-pnpm test:e2e    # 14 fluxos ponta a ponta
+pnpm test:e2e    # 15 fluxos ponta a ponta
 ```
 
 | Pacote   | Cobertura                                                                                                                                                                                           |

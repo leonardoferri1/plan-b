@@ -21,6 +21,22 @@ export function hasCaptureTarget(): boolean {
   return handle !== null;
 }
 
+/** True while `gl` is the renderer a capture would read from. */
+export function isCaptureTarget(gl: THREE.WebGLRenderer): boolean {
+  return handle?.gl === gl;
+}
+
+/**
+ * Clears the handle only when it still points at `gl`.
+ *
+ * An unmount cleanup can run *after* a replacement canvas has already registered itself —
+ * React's strict mode does exactly that on every mount — and clearing unconditionally would
+ * leave the live scene uncapturable.
+ */
+export function clearCaptureTarget(gl: THREE.WebGLRenderer): void {
+  if (handle?.gl === gl) handle = null;
+}
+
 /**
  * Renders one fresh frame and returns it as a PNG data URL.
  *

@@ -14,7 +14,7 @@ import { Structure } from './Structure';
 import { buildScene3D, type Furniture3D } from './scene3d';
 import { disposeMaterialCaches } from './materials';
 import { disposeUnitGeometries } from './geometries';
-import { registerCaptureTarget } from './capture';
+import { clearCaptureTarget, isCaptureTarget, registerCaptureTarget } from './capture';
 
 /** Feature-detects WebGL once; the result cannot change during a session. */
 function detectWebGL(): boolean {
@@ -110,10 +110,17 @@ export function SceneCanvas({ className }: { className?: string }): JSX.Element 
     return scene.furniture.find((item) => item.id === ids[0]) ?? null;
   }, [scene.furniture, selection]);
 
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+
   // Everything cached on the GPU belongs to this canvas; release it when the viewport closes.
+  // The identity check keeps a late cleanup from tearing down a canvas that already replaced
+  // this one.
   useEffect(
     () => () => {
-      registerCaptureTarget(null);
+      const gl = rendererRef.current;
+      if (!gl || !isCaptureTarget(gl)) return;
+
+      clearCaptureTarget(gl);
       disposeMaterialCaches();
       disposeUnitGeometries();
     },
@@ -141,6 +148,7 @@ export function SceneCanvas({ className }: { className?: string }): JSX.Element 
           gl.toneMappingExposure = 0.98;
           three.background = new THREE.Color('#0a1020');
           three.fog = new THREE.Fog('#0a1020', span * 3, span * 7);
+          rendererRef.current = gl;
           registerCaptureTarget({ gl, scene: three, camera });
         }}
         onPointerMissed={() => clearSelection()}
