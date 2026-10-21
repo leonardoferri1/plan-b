@@ -170,6 +170,13 @@ Ao re-sincronizar, um ambiente é reconhecido primeiro pelo conjunto de cantos e
 mudou, pelo centróide contido no novo polígono — assim o nome que você deu sobrevive a uma
 parede arrastada ou dividida.
 
+**Encontros de parede são mitrados**, não sobrepostos. Em volta de cada canto as paredes são
+tomadas em ordem angular e cada par vizinho define um ponto: o cruzamento da face esquerda de
+uma com a face direita da seguinte. Esses pontos cortam as pontas das paredes e, quando três ou
+mais se encontram, o polígono que eles descrevem vira uma peça de preenchimento. As peças
+ladrilham a junção exatamente — sem vão, sem sobreposição e sem nada coplanar, que é o que
+antes fazia o 3D listrar no topo das paredes.
+
 **Aberturas são posições paramétricas**, não recortes. `offset` é a distância do canto `a` até
 o centro do vão, ao longo da linha de eixo. Mover a parede leva as aberturas junto; encurtá-la
 reposiciona (ou estreita) o que não cabe mais.
@@ -261,6 +268,18 @@ retangulares se fatora **exatamente** em caixas: trechos cheios entre vãos, pei
 `wallSolidSegments()` devolve essa decomposição, coberta por testes que conferem a conservação
 de área. Resultado: vãos reais, zero dependências extras.
 
+### Mitra em vez de sobreposição
+
+A primeira versão fazia cada parede crescer além do seu nó, deixando que a sobreposição
+cobrisse o canto. Isso resolve o preenchimento em 2D, mas em 3D dois corpos sobrepostos
+compartilham faces coplanares e o _z-buffer_ não tem como ordená-las — é o listrado que
+aparecia no topo das paredes. Mitrar remove a sobreposição em vez de escondê-la, e de quebra
+deixa a planta geometricamente correta: as peças ladrilham, não se empilham.
+
+O mesmo cuidado vale para as mós de porta e janela: elas entram alguns milímetros parede
+adentro, de modo que a face que encosta fica enterrada dentro do sólido, onde não pode ser
+vista nem disputada.
+
 ### Corte automático das paredes no 3D
 
 Uma parede é escondida quando a câmera e o centro da planta ficam em lados opostos dela — o que
@@ -306,7 +325,7 @@ o JSON.
 ## Testes
 
 ```bash
-pnpm test        # 254 testes unitários (104 shared · 118 web · 32 api)
+pnpm test        # 267 testes unitários (114 shared · 121 web · 32 api)
 pnpm test:e2e    # 16 fluxos ponta a ponta
 ```
 

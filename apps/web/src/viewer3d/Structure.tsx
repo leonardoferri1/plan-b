@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import type { EntityRef } from '@spacecraft/shared';
 import type { FloorShape3D, Scene3D, WallGroup3D } from './scene3d';
+import { resolvePrismGeometries } from './prisms';
 import { getGlassMaterial, getSolidMaterial, getSurfaceMaterial } from './materials';
 import { getUnitBox } from './geometries';
 
@@ -69,11 +70,13 @@ function WallAssembly({
   selection,
   onSelect,
   register,
+  geometries,
 }: {
   wall: WallGroup3D;
   selection: readonly EntityRef[];
   onSelect: (ref: EntityRef) => (event: ThreeEvent<MouseEvent>) => void;
   register: (id: string, group: THREE.Group | null) => void;
+  geometries: Map<string, THREE.BufferGeometry>;
 }): JSX.Element {
   const box = getUnitBox();
   const glassMaterial = getGlassMaterial();
@@ -81,19 +84,21 @@ function WallAssembly({
 
   return (
     <group ref={(instance) => register(wall.id, instance)}>
-      {wall.boxes.map((part) => (
-        <mesh
-          key={part.key}
-          geometry={box}
-          material={getSolidMaterial(part.materialId, wallSelected)}
-          position={part.position}
-          rotation={[0, part.rotationY, 0]}
-          scale={part.size}
-          castShadow
-          receiveShadow
-          onClick={onSelect({ kind: 'wall', id: wall.id })}
-        />
-      ))}
+      {wall.pieces.map((piece) => {
+        const geometry = geometries.get(piece.key);
+        if (!geometry) return null;
+
+        return (
+          <mesh
+            key={piece.key}
+            geometry={geometry}
+            material={getSolidMaterial(piece.materialId, wallSelected)}
+            castShadow
+            receiveShadow
+            onClick={onSelect({ kind: 'wall', id: wall.id })}
+          />
+        );
+      })}
 
       {wall.frames.map((frame) => (
         <mesh
@@ -153,6 +158,13 @@ export function Structure({
 }: StructureProps): JSX.Element {
   const groups = useRef(new Map<string, THREE.Group>());
 
+  // Prism geometry is keyed by footprint, so an edit only rebuilds the walls it touched.
+  const geometries = useMemo(
+    () =>
+      resolvePrismGeometries([...scene.walls.flatMap((wall) => wall.pieces), ...scene.junctions]),
+    [scene],
+  );
+
   const register = (id: string, group: THREE.Group | null): void => {
     if (group) groups.current.set(id, group);
     else groups.current.delete(id);
@@ -211,8 +223,25 @@ export function Structure({
           selection={selection}
           onSelect={handle}
           register={register}
+          geometries={geometries}
         />
       ))}
+
+      {scene.junctions.map((filler) => {
+        const geometry = geometries.get(filler.key);
+        if (!geometry) return null;
+
+        return (
+          <mesh
+            key={filler.key}
+            geometry={geometry}
+            material={getSolidMaterial(filler.materialId, false)}
+            castShadow
+            receiveShadow
+            onClick={handle({ kind: 'wall', id: filler.ownerId })}
+          />
+        );
+      })}
     </group>
   );
 }

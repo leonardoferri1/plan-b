@@ -14,6 +14,7 @@ import { Structure } from './Structure';
 import { buildScene3D, type Furniture3D } from './scene3d';
 import { disposeMaterialCaches } from './materials';
 import { disposeUnitGeometries } from './geometries';
+import { disposePrismCache } from './prisms';
 import { clearCaptureTarget, isCaptureTarget, registerCaptureTarget } from './capture';
 
 /** Feature-detects WebGL once; the result cannot change during a session. */
@@ -123,6 +124,7 @@ export function SceneCanvas({ className }: { className?: string }): JSX.Element 
       clearCaptureTarget(gl);
       disposeMaterialCaches();
       disposeUnitGeometries();
+      disposePrismCache();
     },
     [],
   );

@@ -41,7 +41,7 @@ document directly: every mutation goes through a **command** dispatched on the p
 ### Single source of truth
 
 There is exactly one geometry state: `FloorPlan` inside the project store. The 2D canvas and
-the 3D scene are both *pure projections* of it.
+the 3D scene are both _pure projections_ of it.
 
 ```
 FloorPlan (meters, canonical)
@@ -64,8 +64,8 @@ FloorPlan (meters, canonical)
 
 ## 2. Domain model (`@spacecraft/shared`)
 
-| Entity          | Key fields                                                         |
-| --------------- | ------------------------------------------------------------------ |
+| Entity          | Key fields                                                          |
+| --------------- | ------------------------------------------------------------------- |
 | `WallNode`      | `id, x, y` — shared corner; walls reference nodes, never raw points |
 | `Wall`          | `id, a, b, thickness, height, materialId`                           |
 | `Opening`       | `id, wallId, kind (door or window), offset, width, height, sill`    |
@@ -123,17 +123,17 @@ entry, so dragging a wall node produces a single undo step instead of sixty.
 
 ## 5. Technical decisions
 
-| Decision                                       | Rationale                                                                                                                                                                                                                                     |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **2D via imperative Canvas 2D, not SVG/React** | A floor plan redraws on every pointer move. Reconciling hundreds of React nodes at 60 fps is wasteful; one canvas with a render loop keeps pointer latency flat and makes high-DPI PNG export a one-liner.                                      |
-| **Walls as a node graph**                      | Enables shared corners, correct junction geometry and cycle-based room detection. A flat list of segments cannot express "these two walls share a corner".                                                                                      |
-| **Openings cut by wall splitting, not CSG**    | Boolean CSG on extruded geometry is slow and fragile. A straight wall with a rectangular opening decomposes exactly into boxes (left, right, under-sill, over-head). Robust, fast, zero extra dependencies.                                     |
-| **Procedural furniture, no GLTF assets**       | No download, licensing or LFS risk, instant load, every model is theme-able by material swap, and the catalog stays diff-able text.                                                                                                             |
-| **immer patches for undo/redo**                | A real command pattern with cheap inverses and no hand-written `undo()` per command.                                                                                                                                                           |
-| **Zod schemas live in `shared`**               | The same validator guards the API request body, the JSON import file and the localStorage payload. One schema, three boundaries.                                                                                                               |
-| **Repository abstraction for persistence**     | `LocalProjectRepository` and `HttpProjectRepository` share an interface, so the portfolio demo works with the API off and switches to the server transparently when it is reachable.                                                            |
-| **Zustand with selector subscriptions**        | The 3D scene must not re-render because a tooltip opened. Slices plus `useShallow` keep re-renders scoped.                                                                                                                                      |
-| **schemaVersion with a migration chain**       | Saved plans outlive the code that wrote them; `migratePlan()` upgrades old payloads before validation.                                                                                                                                          |
+| Decision                                       | Rationale                                                                                                                                                                                                   |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **2D via imperative Canvas 2D, not SVG/React** | A floor plan redraws on every pointer move. Reconciling hundreds of React nodes at 60 fps is wasteful; one canvas with a render loop keeps pointer latency flat and makes high-DPI PNG export a one-liner.  |
+| **Walls as a node graph**                      | Enables shared corners, correct junction geometry and cycle-based room detection. A flat list of segments cannot express "these two walls share a corner".                                                  |
+| **Openings cut by wall splitting, not CSG**    | Boolean CSG on extruded geometry is slow and fragile. A straight wall with a rectangular opening decomposes exactly into boxes (left, right, under-sill, over-head). Robust, fast, zero extra dependencies. |
+| **Procedural furniture, no GLTF assets**       | No download, licensing or LFS risk, instant load, every model is theme-able by material swap, and the catalog stays diff-able text.                                                                         |
+| **immer patches for undo/redo**                | A real command pattern with cheap inverses and no hand-written `undo()` per command.                                                                                                                        |
+| **Zod schemas live in `shared`**               | The same validator guards the API request body, the JSON import file and the localStorage payload. One schema, three boundaries.                                                                            |
+| **Repository abstraction for persistence**     | `LocalProjectRepository` and `HttpProjectRepository` share an interface, so the portfolio demo works with the API off and switches to the server transparently when it is reachable.                        |
+| **Zustand with selector subscriptions**        | The 3D scene must not re-render because a tooltip opened. Slices plus `useShallow` keep re-renders scoped.                                                                                                  |
+| **schemaVersion with a migration chain**       | Saved plans outlive the code that wrote them; `migratePlan()` upgrades old payloads before validation.                                                                                                      |
 
 ---
 

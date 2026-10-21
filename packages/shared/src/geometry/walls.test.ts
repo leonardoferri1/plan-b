@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { Opening, Wall, WallNode } from '../domain/types';
+import type { Opening, Vec2, Wall, WallNode } from '../domain/types';
+import { createSampleLevel } from '../samples/apartment';
+import { pointInPolygon, polygonArea } from './polygon';
 import {
   buildNodeMap,
   checkOpeningFit,
   findHostWall,
   openingPlacement,
+  solidPieceFootprint,
+  solveJunctions,
   toWallLocal,
-  wallExtensions,
   wallLength,
   wallQuad,
   wallSolidSegments,
@@ -53,32 +56,178 @@ describe('wallLength and wallQuad', () => {
     expect(ys[3]).toBeCloseTo(0.1, 10);
   });
 
-  it('grows the quad when junction extensions are supplied', () => {
-    const quad = wallQuad(wall('w1', 'a', 'b', 0.2), nodes, { start: 0.1, end: 0.1 })!;
-    expect(quad.length).toBeCloseTo(4.2, 10);
-    expect(quad.start.x).toBeCloseTo(-0.1, 10);
-    expect(quad.end.x).toBeCloseTo(4.1, 10);
-  });
-
   it('returns null when an endpoint is missing', () => {
     expect(wallQuad(wall('w1', 'a', 'missing'), nodes)).toBeNull();
   });
 });
 
-describe('wallExtensions', () => {
-  const nodes = buildNodeMap([node('a', 0, 0), node('b', 4, 0), node('c', 4, 3)]);
+describe('solveJunctions', () => {
+  const corner = () => {
+    const nodes = buildNodeMap([node('a', 0, 0), node('b', 4, 0), node('c', 4, 3)]);
+    const walls = [wall('w1', 'a', 'b', 0.2), wall('w2', 'b', 'c', 0.2)];
+    return { nodes, walls, solution: solveJunctions(nodes, walls) };
+  };
 
-  it('extends only at ends that have a neighbour', () => {
-    const walls = [wall('w1', 'a', 'b', 0.2), wall('w2', 'b', 'c', 0.3)];
-    const extensions = wallExtensions(walls[0]!, walls, nodes);
+  it('squares off a wall that meets nothing', () => {
+    const nodes = buildNodeMap([node('a', 0, 0), node('b', 4, 0)]);
+    const walls = [wall('w1', 'a', 'b', 0.2)];
+    const trim = solveJunctions(nodes, walls).walls.get('w1')!;
 
-    expect(extensions.start).toBe(0);
-    expect(extensions.end).toBeCloseTo(0.15, 10);
+    expect(trim.a.plus).toEqual({ x: 0, y: 0.1 });
+    expect(trim.a.minus).toEqual({ x: 0, y: -0.1 });
+    expect(trim.b.plus).toEqual({ x: 4, y: 0.1 });
+    expect(trim.b.minus).toEqual({ x: 4, y: -0.1 });
   });
 
-  it('uses the thickest neighbour at a junction', () => {
-    const walls = [wall('w1', 'a', 'b', 0.1), wall('w2', 'b', 'c', 0.3), wall('w3', 'b', 'a', 0.5)];
-    expect(wallExtensions(walls[0]!, walls, nodes).end).toBeCloseTo(0.25, 10);
+  it('miters a right-angle corner', () => {
+    const first = corner().solution.walls.get('w1')!;
+
+    expect(first.b.plus.x).toBeCloseTo(3.9, 10);
+    expect(first.b.plus.y).toBeCloseTo(0.1, 10);
+    expect(first.b.minus.x).toBeCloseTo(4.1, 10);
+    expect(first.b.minus.y).toBeCloseTo(-0.1, 10);
+  });
+
+  it('makes both walls share the very same miter edge', () => {
+    const { solution } = corner();
+    const first = solution.walls.get('w1')!;
+    const second = solution.walls.get('w2')!;
+
+    expect(second.a.plus).toEqual(first.b.plus);
+    expect(second.a.minus).toEqual(first.b.minus);
+  });
+
+  it('needs no filler where only two walls meet', () => {
+    expect(corner().solution.blocks.size).toBe(0);
+  });
+
+  it('scales the miter with the neighbour thickness', () => {
+    const nodes = buildNodeMap([node('a', 0, 0), node('b', 4, 0), node('c', 4, 3)]);
+    const walls = [wall('w1', 'a', 'b', 0.2), wall('w2', 'b', 'c', 0.6)];
+    const first = solveJunctions(nodes, walls).walls.get('w1')!;
+
+    // The thicker partner pushes the joint further along the thinner wall.
+    expect(first.b.plus.x).toBeCloseTo(3.7, 10);
+    expect(first.b.minus.x).toBeCloseTo(4.3, 10);
+  });
+
+  it('fills a T junction with a triangle', () => {
+    const nodes = buildNodeMap([
+      node('left', 0, 0),
+      node('mid', 4, 0),
+      node('right', 8, 0),
+      node('stem', 4, 3),
+    ]);
+    const walls = [
+      wall('w1', 'left', 'mid', 0.2),
+      wall('w2', 'mid', 'right', 0.2),
+      wall('w3', 'mid', 'stem', 0.2),
+    ];
+
+    const block = solveJunctions(nodes, walls).blocks.get('mid');
+
+    expect(block).toHaveLength(3);
+    expect(polygonArea(block!)).toBeGreaterThan(0);
+  });
+
+  it('fills a crossing with a quadrilateral', () => {
+    const nodes = buildNodeMap([
+      node('mid', 0, 0),
+      node('n', 0, -3),
+      node('s', 0, 3),
+      node('e', 3, 0),
+      node('w', -3, 0),
+    ]);
+    const walls = [
+      wall('w1', 'mid', 'n', 0.2),
+      wall('w2', 'mid', 's', 0.2),
+      wall('w3', 'mid', 'e', 0.2),
+      wall('w4', 'mid', 'w', 0.2),
+    ];
+
+    const block = solveJunctions(nodes, walls).blocks.get('mid')!;
+
+    expect(block).toHaveLength(4);
+    // Two 0.2 walls crossing leave exactly the 0.2 x 0.2 square around the node.
+    expect(polygonArea(block)).toBeCloseTo(0.04, 10);
+  });
+
+  it('joins collinear walls with a flat end', () => {
+    const nodes = buildNodeMap([node('a', 0, 0), node('b', 4, 0), node('c', 9, 0)]);
+    const walls = [wall('w1', 'a', 'b', 0.2), wall('w2', 'b', 'c', 0.2)];
+    const trim = solveJunctions(nodes, walls).walls.get('w1')!;
+
+    expect(trim.b.plus.x).toBeCloseTo(4, 10);
+    expect(trim.b.minus.x).toBeCloseTo(4, 10);
+  });
+
+  it('clips a miter that would otherwise shoot off into space', () => {
+    const nodes = buildNodeMap([node('a', 0, 0), node('b', 4, 0), node('c', 7.98, 0.1)]);
+    const walls = [wall('w1', 'a', 'b', 0.2), wall('w2', 'b', 'c', 0.2)];
+    const trim = solveJunctions(nodes, walls).walls.get('w1')!;
+
+    for (const point of [trim.b.plus, trim.b.minus]) {
+      expect(Math.hypot(point.x - 4, point.y)).toBeLessThanOrEqual(6 * 0.1 + 1e-9);
+    }
+  });
+
+  it('leaves no two pieces of the demo apartment overlapping', () => {
+    const level = createSampleLevel();
+    const nodes = buildNodeMap(level.nodes);
+    const solution = solveJunctions(nodes, level.walls);
+
+    const quads = level.walls
+      .map((candidate) => wallQuad(candidate, nodes, solution.walls.get(candidate.id)))
+      .filter((quad): quad is NonNullable<typeof quad> => quad !== null)
+      .map((quad) => quad.points as Vec2[]);
+
+    const pieces: Vec2[][] = [...quads, ...solution.blocks.values()];
+
+    // Probe densely around every junction, which is where overlap used to be designed in. The
+    // offsets are deliberately off-grid so a sample never lands exactly on a shared edge.
+    let worst = 0;
+    for (const corner of level.nodes) {
+      for (let i = -14; i <= 14; i += 1) {
+        for (let j = -14; j <= 14; j += 1) {
+          const probe = { x: corner.x + i * 0.019 + 0.0037, y: corner.y + j * 0.019 + 0.0051 };
+          const hits = pieces.filter((piece) => pointInPolygon(probe, piece)).length;
+          if (hits > worst) worst = hits;
+        }
+      }
+    }
+
+    expect(worst).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('solidPieceFootprint', () => {
+  const nodes = buildNodeMap([node('a', 0, 0), node('b', 4, 0), node('c', 4, 3)]);
+  const walls = [wall('w1', 'a', 'b', 0.2), wall('w2', 'b', 'c', 0.2)];
+  const trim = solveJunctions(nodes, walls).walls.get('w1')!;
+
+  it('cuts square across the wall away from the ends', () => {
+    const footprint = solidPieceFootprint(walls[0]!, nodes, { start: 1, end: 2 }, trim)!;
+
+    expect(footprint).toEqual([
+      { x: 1, y: 0.1 },
+      { x: 2, y: 0.1 },
+      { x: 2, y: -0.1 },
+      { x: 1, y: -0.1 },
+    ]);
+  });
+
+  it('inherits the mitered corners at an end', () => {
+    const footprint = solidPieceFootprint(walls[0]!, nodes, { start: 2, end: 4 }, trim)!;
+
+    expect(footprint[1]).toEqual(trim.b.plus);
+    expect(footprint[2]).toEqual(trim.b.minus);
+  });
+
+  it('keeps square ends when no trim is supplied', () => {
+    const footprint = solidPieceFootprint(walls[0]!, nodes, { start: 0, end: 4 })!;
+
+    expect(footprint[0]).toEqual({ x: 0, y: 0.1 });
+    expect(footprint[1]).toEqual({ x: 4, y: 0.1 });
   });
 });
 

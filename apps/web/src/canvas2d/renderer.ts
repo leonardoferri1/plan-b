@@ -208,10 +208,10 @@ function drawWalls(ctx: CanvasRenderingContext2D, options: RenderOptions): void 
 /**
  * Paints the walls as a single solid body.
  *
- * Every wall is stroked first, then every wall is filled on top. Because a stroke straddles
- * its edge, the fills cover its inner half — and, at a junction where two walls overlap, they
- * cover the neighbour's buried edges entirely. What survives is the outline of the union: the
- * mitred corner an architect would draw, rather than two rectangles with a seam across them.
+ * The pieces already tile the plan exactly — mitered ends, plus a filler where three or more
+ * walls meet — so the only thing left to hide is the hairline where two of them abut. Stroking
+ * everything first and filling afterwards does that: a stroke straddles its edge, and the fills
+ * cover the inner half, leaving just the outline of the union.
  */
 function paintWallBodies(ctx: CanvasRenderingContext2D, options: RenderOptions): void {
   const { scene, view, selection, hovered } = options;
@@ -224,6 +224,7 @@ function paintWallBodies(ctx: CanvasRenderingContext2D, options: RenderOptions):
 
   ctx.lineWidth = 2;
   ctx.lineJoin = 'miter';
+
   for (const wall of scene.walls) {
     tracePolygon(ctx, wall.quad.points, view);
     ctx.strokeStyle = isSelectedRef(selection, 'wall', wall.id)
@@ -232,9 +233,22 @@ function paintWallBodies(ctx: CanvasRenderingContext2D, options: RenderOptions):
     ctx.stroke();
   }
 
+  for (const block of scene.junctions) {
+    tracePolygon(ctx, block, view);
+    ctx.strokeStyle = PLAN_COLORS.wallStroke;
+    ctx.stroke();
+  }
+
   for (const wall of scene.walls) {
     tracePolygon(ctx, wall.quad.points, view);
     ctx.fillStyle = fillFor(wall.id);
+    ctx.fill();
+  }
+
+  // Fillers carry no identity of their own, so they take the plain wall colour.
+  for (const block of scene.junctions) {
+    tracePolygon(ctx, block, view);
+    ctx.fillStyle = PLAN_COLORS.wallFill;
     ctx.fill();
   }
 

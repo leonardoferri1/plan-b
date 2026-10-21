@@ -4,8 +4,9 @@ import {
   openingsOfWall,
   resolveMaterialSlots,
   resolveParts,
-  wallExtensions,
-  wallQuad,
+  solidPieceFootprint,
+  solveJunctions,
+  wallLength,
   wallSolidSegments,
   type Level,
   type OpeningKind,
@@ -30,6 +31,23 @@ export interface Box3D {
   rotationY: number;
   materialId: string;
   /** The entity this box belongs to, for picking and highlighting. */
+  ownerId: string;
+}
+
+/**
+ * A solid piece of wall: a vertical prism over a plan footprint.
+ *
+ * Wall bodies are prisms rather than boxes because their ends are mitered against their
+ * neighbours. That is what keeps two walls meeting at a corner from sharing a volume — and
+ * therefore from sharing coplanar faces the depth buffer cannot order.
+ */
+export interface Prism3D {
+  key: string;
+  /** Plan-space polygon; the renderer lifts it into the XZ plane. */
+  footprint: Vec2[];
+  bottom: number;
+  top: number;
+  materialId: string;
   ownerId: string;
 }
 
@@ -88,7 +106,7 @@ export interface WallGroup3D {
   center: Vec2;
   /** Unit normal of the wall in plan coordinates. */
   normal: Vec2;
-  boxes: Box3D[];
+  pieces: Prism3D[];
   frames: Box3D[];
   glass: GlassPane[];
   doors: DoorLeaf[];
@@ -96,6 +114,8 @@ export interface WallGroup3D {
 
 export interface Scene3D {
   walls: WallGroup3D[];
+  /** Fillers where three or more walls meet, emitted once each. */
+  junctions: Prism3D[];
   floors: FloorShape3D[];
   furniture: Furniture3D[];
   /** Tallest wall, used to place the camera and the key light. */
@@ -104,55 +124,66 @@ export interface Scene3D {
 
 const FRAME_DEPTH_RATIO = 1.12;
 const FRAME_THICKNESS = 0.05;
+/**
+ * How far a lining is pushed into the surrounding wall.
+ *
+ * A reveal that stopped exactly at the opening would put its outer face in the same plane as
+ * the wall's cut face, which is the other way this scene used to produce z-fighting. Burying
+ * it keeps every shared surface strictly inside a solid, where it cannot be seen or fought
+ * over.
+ */
+const FRAME_EMBED = FRAME_THICKNESS * 0.6;
 
 export function buildScene3D(level: Level): Scene3D {
   const nodes = buildNodeMap(level.nodes);
+  const junctions = solveJunctions(nodes, level.walls);
 
   const walls: WallGroup3D[] = [];
   let maxHeight = 0;
 
   for (const wall of level.walls) {
-    const extensions = wallExtensions(wall, level.walls, nodes);
-    const quad = wallQuad(wall, nodes, extensions);
-    if (!quad) continue;
+    const start = nodes.get(wall.a);
+    const end = nodes.get(wall.b);
+    if (!start || !end) continue;
+
+    const length = wallLength(wall, nodes);
+    if (length <= 1e-6) continue;
 
     maxHeight = Math.max(maxHeight, wall.height);
 
     const direction: Vec2 = {
-      x: (quad.end.x - quad.start.x) / quad.length,
-      y: (quad.end.y - quad.start.y) / quad.length,
+      x: (end.x - start.x) / length,
+      y: (end.y - start.y) / length,
     };
     const angle = Math.atan2(direction.y, direction.x);
     const openings = openingsOfWall(wall.id, level.openings);
+    const trim = junctions.walls.get(wall.id);
 
     const group: WallGroup3D = {
       id: wall.id,
-      center: { x: (quad.start.x + quad.end.x) / 2, y: (quad.start.y + quad.end.y) / 2 },
+      center: { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 },
       normal: { x: -direction.y, y: direction.x },
-      boxes: [],
+      pieces: [],
       frames: [],
       glass: [],
       doors: [],
     };
 
-    const segments = wallSolidSegments(quad.length, wall.height, openings, extensions.start);
+    const segments = wallSolidSegments(length, wall.height, openings, 0);
 
     segments.forEach((segment, index) => {
       const spanLength = segment.end - segment.start;
       const spanHeight = segment.top - segment.bottom;
       if (spanLength <= 1e-4 || spanHeight <= 1e-4) return;
 
-      const along = (segment.start + segment.end) / 2;
+      const footprint = solidPieceFootprint(wall, nodes, segment, trim);
+      if (!footprint) return;
 
-      group.boxes.push({
+      group.pieces.push({
         key: `${wall.id}:${index}`,
-        position: [
-          quad.start.x + direction.x * along,
-          (segment.bottom + segment.top) / 2,
-          quad.start.y + direction.y * along,
-        ],
-        size: [spanLength, spanHeight, wall.thickness],
-        rotationY: planRotationToThree(angle),
+        footprint,
+        bottom: segment.bottom,
+        top: segment.top,
         materialId: wall.materialId,
         ownerId: wall.id,
       });
@@ -160,38 +191,42 @@ export function buildScene3D(level: Level): Scene3D {
 
     // Reveal and joinery around each hole.
     for (const opening of openings) {
-      const along = opening.offset + extensions.start;
+      // Openings are measured from node A along the centerline, which the miter does not move.
+      const along = opening.offset;
       const center: [number, number, number] = [
-        quad.start.x + direction.x * along,
+        start.x + direction.x * along,
         0,
-        quad.start.y + direction.y * along,
+        start.y + direction.y * along,
       ];
       const rotationY = planRotationToThree(angle);
       const depth = wall.thickness * FRAME_DEPTH_RATIO;
 
       const head = opening.sillHeight + opening.height;
 
-      // Jambs on both sides.
+      // Jambs on both sides, each reaching back into the wall.
       for (const side of [-1, 1] as const) {
+        const jambLength = FRAME_THICKNESS + FRAME_EMBED;
+        const jambCentre = (opening.width - FRAME_THICKNESS + FRAME_EMBED) / 2;
+
         group.frames.push({
           key: `${opening.id}:jamb:${side}`,
           position: [
-            center[0] + direction.x * ((side * (opening.width - FRAME_THICKNESS)) / 2),
+            center[0] + direction.x * side * jambCentre,
             opening.sillHeight + opening.height / 2,
-            center[2] + direction.y * ((side * (opening.width - FRAME_THICKNESS)) / 2),
+            center[2] + direction.y * side * jambCentre,
           ],
-          size: [FRAME_THICKNESS, opening.height, depth],
+          size: [jambLength, opening.height, depth],
           rotationY,
           materialId: 'white-plaster',
           ownerId: opening.id,
         });
       }
 
-      // Lintel.
+      // Lintel, reaching up into the wall above.
       group.frames.push({
         key: `${opening.id}:head`,
-        position: [center[0], head - FRAME_THICKNESS / 2, center[2]],
-        size: [opening.width, FRAME_THICKNESS, depth],
+        position: [center[0], head - FRAME_THICKNESS / 2 + FRAME_EMBED / 2, center[2]],
+        size: [opening.width, FRAME_THICKNESS + FRAME_EMBED, depth],
         rotationY,
         materialId: 'white-plaster',
         ownerId: opening.id,
@@ -200,8 +235,12 @@ export function buildScene3D(level: Level): Scene3D {
       if (opening.kind === 'window') {
         group.frames.push({
           key: `${opening.id}:sill`,
-          position: [center[0], opening.sillHeight + FRAME_THICKNESS / 2, center[2]],
-          size: [opening.width, FRAME_THICKNESS, depth],
+          position: [
+            center[0],
+            opening.sillHeight + FRAME_THICKNESS / 2 - FRAME_EMBED / 2,
+            center[2],
+          ],
+          size: [opening.width, FRAME_THICKNESS + FRAME_EMBED, depth],
           rotationY,
           materialId: 'white-plaster',
           ownerId: opening.id,
@@ -238,6 +277,26 @@ export function buildScene3D(level: Level): Scene3D {
     }
 
     walls.push(group);
+  }
+
+  const junctionPrisms: Prism3D[] = [];
+
+  for (const [nodeId, footprint] of junctions.blocks) {
+    const incident = level.walls.filter((wall) => wall.a === nodeId || wall.b === nodeId);
+    const tallest = incident.reduce(
+      (best, wall) => (wall.height > best.height ? wall : best),
+      incident[0]!,
+    );
+    if (!tallest) continue;
+
+    junctionPrisms.push({
+      key: `junction:${nodeId}`,
+      footprint,
+      bottom: 0,
+      top: tallest.height,
+      materialId: tallest.materialId,
+      ownerId: tallest.id,
+    });
   }
 
   const floors: FloorShape3D[] = level.rooms
@@ -287,6 +346,7 @@ export function buildScene3D(level: Level): Scene3D {
 
   return {
     walls,
+    junctions: junctionPrisms,
     floors,
     furniture,
     maxHeight: maxHeight || 2.7,

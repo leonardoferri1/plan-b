@@ -1,7 +1,7 @@
 import { GEOMETRY_LIMITS } from '../domain/types';
 import type { Level, Opening, Vec2, Wall, WallNode } from '../domain/types';
 import { closestPointOnSegment, projectParam, signedDistanceToLine } from './segment';
-import { EPSILON, add, distance, normalize, perpendicular, scale, sub } from './vec2';
+import { EPSILON, add, cross, distance, normalize, perpendicular, scale, sub } from './vec2';
 
 export type NodeMap = ReadonlyMap<string, WallNode>;
 
@@ -38,76 +38,229 @@ export function wallMidpoint(wall: Wall, nodes: NodeMap): Vec2 {
   return { x: (ends.a.x + ends.b.x) / 2, y: (ends.a.y + ends.b.y) / 2 };
 }
 
-export interface WallExtensions {
-  start: number;
-  end: number;
+/** Where a wall end meets its neighbours, expressed in the wall's own frame. */
+export interface WallEndTrim {
+  /** Corner on the `+normal` side, where `normal = perpendicular(direction a→b)`. */
+  plus: Vec2;
+  /** Corner on the `-normal` side. */
+  minus: Vec2;
+}
+
+export interface WallTrim {
+  a: WallEndTrim;
+  b: WallEndTrim;
+}
+
+export interface JunctionSolution {
+  /** Trimmed end corners, by wall id. */
+  walls: Map<string, WallTrim>;
+  /** Filler polygon by node id. Only nodes joining three or more walls need one. */
+  blocks: Map<string, Vec2[]>;
+}
+
+/** A miter longer than this many half-thicknesses is clipped; a spike reads worse than a cut. */
+const MAX_MITER_RATIO = 6;
+
+interface IncidentWall {
+  wall: Wall;
+  /** Unit direction pointing away from the node. */
+  outward: Vec2;
+  /** Left-hand normal of `outward`. */
+  normal: Vec2;
+  half: number;
+  angle: number;
+  atA: boolean;
+}
+
+/** Intersection of two infinite lines, or `null` when they are parallel. */
+function intersectLines(p1: Vec2, d1: Vec2, p2: Vec2, d2: Vec2): Vec2 | null {
+  const denominator = cross(d1, d2);
+  if (Math.abs(denominator) < 1e-9) return null;
+
+  const t = cross(sub(p2, p1), d2) / denominator;
+  return add(p1, scale(d1, t));
 }
 
 /**
- * How far each end of a wall must grow past its node so that junctions read as solid corners.
+ * Resolves every wall junction by mitering.
  *
- * Mitering every corner analytically is overkill for axis-friendly residential plans: growing
- * each wall by half of the thickest wall meeting at that node produces an overlapping union
- * that is visually exact for the 2D fill and for the 3D extrusion alike, with no special cases
- * for T junctions, crossings or acute angles.
+ * Walls used to be grown past their node so the corner square would be covered by whichever
+ * wall happened to overlap it. That reads fine in a flat 2D fill, but in 3D the overlapping
+ * bodies share coplanar faces and the depth buffer cannot choose between them — the striping
+ * that shows up on wall tops wherever two walls meet.
+ *
+ * Mitering removes the overlap instead of hiding it. Around each node the walls are taken in
+ * angular order and each adjacent pair contributes one corner: the intersection of one wall's
+ * left face with the next wall's right face. Those corners trim the wall ends, and for three
+ * or more walls the polygon they describe is the leftover middle, emitted once as a filler.
+ * The pieces tile the junction exactly: no gap, no overlap, nothing coplanar.
  */
-export function wallExtensions(
-  wall: Wall,
-  walls: readonly Wall[],
-  _nodes: NodeMap,
-): WallExtensions {
-  const extensionAt = (nodeId: string): number => {
-    let maxThickness = 0;
-    let incident = 0;
+export function solveJunctions(nodes: NodeMap, walls: readonly Wall[]): JunctionSolution {
+  const byNode = new Map<string, IncidentWall[]>();
 
-    for (const other of walls) {
-      if (other.id === wall.id) continue;
-      if (other.a === nodeId || other.b === nodeId) {
-        incident += 1;
-        maxThickness = Math.max(maxThickness, other.thickness);
-      }
+  for (const wall of walls) {
+    const ends = wallEndpoints(wall, nodes);
+    if (!ends) continue;
+
+    const direction = normalize(sub(ends.b, ends.a));
+    if (Math.abs(direction.x) < EPSILON && Math.abs(direction.y) < EPSILON) continue;
+
+    for (const atA of [true, false]) {
+      const outward = atA ? direction : scale(direction, -1);
+      const entry: IncidentWall = {
+        wall,
+        outward,
+        normal: perpendicular(outward),
+        half: wall.thickness / 2,
+        angle: Math.atan2(outward.y, outward.x),
+        atA,
+      };
+
+      const nodeId = atA ? wall.a : wall.b;
+      const list = byNode.get(nodeId) ?? [];
+      list.push(entry);
+      byNode.set(nodeId, list);
     }
+  }
 
-    return incident === 0 ? 0 : maxThickness / 2;
+  const result: JunctionSolution = { walls: new Map(), blocks: new Map() };
+
+  const record = (entry: IncidentWall, left: Vec2, right: Vec2): void => {
+    const trim = result.walls.get(entry.wall.id) ?? {
+      a: { plus: { x: 0, y: 0 }, minus: { x: 0, y: 0 } },
+      b: { plus: { x: 0, y: 0 }, minus: { x: 0, y: 0 } },
+    };
+
+    // Walking outward from node A the wall's `+normal` side is on the left; from node B the
+    // outward direction is reversed, so the sides swap.
+    const end = entry.atA ? { plus: left, minus: right } : { plus: right, minus: left };
+    if (entry.atA) trim.a = end;
+    else trim.b = end;
+
+    result.walls.set(entry.wall.id, trim);
   };
 
-  return { start: extensionAt(wall.a), end: extensionAt(wall.b) };
+  for (const [nodeId, incident] of byNode) {
+    const node = nodes.get(nodeId);
+    if (!node) continue;
+
+    const origin: Vec2 = { x: node.x, y: node.y };
+
+    if (incident.length === 1) {
+      const only = incident[0]!;
+      record(
+        only,
+        add(origin, scale(only.normal, only.half)),
+        sub(origin, scale(only.normal, only.half)),
+      );
+      continue;
+    }
+
+    const ordered = [...incident].sort((left, right) => left.angle - right.angle);
+    const limit = MAX_MITER_RATIO * Math.max(...ordered.map((entry) => entry.half));
+
+    const corners = ordered.map((current, index) => {
+      const next = ordered[(index + 1) % ordered.length]!;
+
+      const leftBase = add(origin, scale(current.normal, current.half));
+      const rightBase = sub(origin, scale(next.normal, next.half));
+
+      const crossing = intersectLines(leftBase, current.outward, rightBase, next.outward);
+
+      // Collinear neighbours (a wall carried on by another) have parallel faces and no
+      // crossing; the flat end halfway between the two offsets is the joint.
+      const corner = crossing ?? {
+        x: (leftBase.x + rightBase.x) / 2,
+        y: (leftBase.y + rightBase.y) / 2,
+      };
+
+      const reach = distance(corner, origin);
+      if (reach <= limit) return corner;
+
+      return add(origin, scale(normalize(sub(corner, origin)), limit));
+    });
+
+    ordered.forEach((entry, index) => {
+      const left = corners[index]!;
+      const right = corners[(index - 1 + corners.length) % corners.length]!;
+      record(entry, left, right);
+    });
+
+    if (ordered.length >= 3) result.blocks.set(nodeId, corners);
+  }
+
+  return result;
 }
 
 export interface WallQuad {
-  /** Corners in order: a-left, b-left, b-right, a-right. */
+  /** Corners in order: a-plus, b-plus, b-minus, a-minus. */
   points: [Vec2, Vec2, Vec2, Vec2];
-  /** Centerline start, after junction extension. */
+  /** Centerline start. */
   start: Vec2;
-  /** Centerline end, after junction extension. */
+  /** Centerline end. */
   end: Vec2;
+  /** Centerline length. */
   length: number;
 }
 
 /**
- * The filled footprint of a wall in plan space, optionally grown at the ends to close corners.
+ * The filled footprint of a wall in plan space.
+ *
+ * With a `trim` from {@link solveJunctions} the ends are mitered against the neighbours, so
+ * adjacent walls tile rather than overlap. Without one the wall gets square ends, which is
+ * what an isolated wall wants anyway.
  */
-export function wallQuad(
-  wall: Wall,
-  nodes: NodeMap,
-  extensions: WallExtensions = { start: 0, end: 0 },
-): WallQuad | null {
+export function wallQuad(wall: Wall, nodes: NodeMap, trim?: WallTrim): WallQuad | null {
   const ends = wallEndpoints(wall, nodes);
   if (!ends) return null;
 
   const direction = normalize(sub(ends.b, ends.a));
   if (Math.abs(direction.x) < EPSILON && Math.abs(direction.y) < EPSILON) return null;
 
-  const start = sub(ends.a, scale(direction, extensions.start));
-  const end = add(ends.b, scale(direction, extensions.end));
+  const start: Vec2 = { x: ends.a.x, y: ends.a.y };
+  const end: Vec2 = { x: ends.b.x, y: ends.b.y };
   const half = scale(perpendicular(direction), wall.thickness / 2);
 
-  return {
-    points: [add(start, half), add(end, half), sub(end, half), sub(start, half)],
-    start,
-    end,
-    length: distance(start, end),
-  };
+  const points: [Vec2, Vec2, Vec2, Vec2] = trim
+    ? [trim.a.plus, trim.b.plus, trim.b.minus, trim.a.minus]
+    : [add(start, half), add(end, half), sub(end, half), sub(start, half)];
+
+  return { points, start, end, length: distance(start, end) };
+}
+
+/**
+ * Plan footprint of one solid piece of a wall, given its span along the centerline.
+ *
+ * Pieces that reach an end inherit that end's mitered corners; the rest are cut square across
+ * the wall. This is what turns the one-dimensional decomposition from
+ * {@link wallSolidSegments} into geometry the viewer can extrude.
+ */
+export function solidPieceFootprint(
+  wall: Wall,
+  nodes: NodeMap,
+  segment: { start: number; end: number },
+  trim?: WallTrim,
+): [Vec2, Vec2, Vec2, Vec2] | null {
+  const ends = wallEndpoints(wall, nodes);
+  if (!ends) return null;
+
+  const direction = normalize(sub(ends.b, ends.a));
+  const normal = perpendicular(direction);
+  const half = wall.thickness / 2;
+  const length = distance(ends.a, ends.b);
+
+  const across = (along: number, side: 1 | -1): Vec2 =>
+    add(add(ends.a, scale(direction, along)), scale(normal, side * half));
+
+  const atStart = segment.start <= EPSILON;
+  const atEnd = segment.end >= length - EPSILON;
+
+  return [
+    atStart && trim ? trim.a.plus : across(segment.start, 1),
+    atEnd && trim ? trim.b.plus : across(segment.end, 1),
+    atEnd && trim ? trim.b.minus : across(segment.end, -1),
+    atStart && trim ? trim.a.minus : across(segment.start, -1),
+  ];
 }
 
 /** Position of a point expressed in the wall's own frame. */

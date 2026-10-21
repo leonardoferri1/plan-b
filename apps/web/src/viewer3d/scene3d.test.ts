@@ -36,9 +36,49 @@ describe('buildScene3D', () => {
 
     // The bedroom partition carries one door, so it survives as three solid pieces: the two
     // stretches either side plus the lintel over the opening.
-    expect(partition.boxes).toHaveLength(3);
+    expect(partition.pieces).toHaveLength(3);
     expect(partition.doors).toHaveLength(1);
     expect(partition.glass).toHaveLength(0);
+  });
+
+  it('mitres wall bodies instead of overlapping them', () => {
+    const scene = buildScene3D(createSampleLevel());
+    const facade = scene.walls.find((wall) => wall.id === 'w-n1')!;
+    const partition = scene.walls.find((wall) => wall.id === 'w-i1')!;
+
+    // The partition meets the facade at node n-b; both pieces must stop on the same edge.
+    const facadeCorners = facade.pieces.flatMap((piece) => piece.footprint);
+    const partitionCorners = partition.pieces.flatMap((piece) => piece.footprint);
+
+    const shared = facadeCorners.filter((corner) =>
+      partitionCorners.some(
+        (other) => Math.abs(other.x - corner.x) < 1e-9 && Math.abs(other.y - corner.y) < 1e-9,
+      ),
+    );
+
+    expect(shared.length).toBeGreaterThan(0);
+  });
+
+  it('emits one filler per junction of three or more walls', () => {
+    const scene = buildScene3D(createSampleLevel());
+
+    // n-b, n-e, n-f, n-d, n-g, n-i, n-j all gather three walls or more.
+    expect(scene.junctions.length).toBeGreaterThan(0);
+    for (const filler of scene.junctions) {
+      expect(filler.footprint.length).toBeGreaterThanOrEqual(3);
+      expect(filler.top).toBeGreaterThan(filler.bottom);
+    }
+  });
+
+  it('gives every wall piece a four-cornered footprint', () => {
+    const scene = buildScene3D(createSampleLevel());
+
+    for (const wall of scene.walls) {
+      for (const piece of wall.pieces) {
+        expect(piece.footprint, piece.key).toHaveLength(4);
+        expect(piece.top).toBeGreaterThan(piece.bottom);
+      }
+    }
   });
 
   it('glazes windows and leaves doors open', () => {

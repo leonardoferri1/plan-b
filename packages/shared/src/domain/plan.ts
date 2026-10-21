@@ -1,7 +1,7 @@
 import { detectRoomLoops, loopKey } from '../geometry/rooms';
 import { polygonArea, polygonBounds, polygonCentroid, type Bounds } from '../geometry/polygon';
 import { pointInPolygon } from '../geometry/polygon';
-import { buildNodeMap, wallLength, wallQuad, wallExtensions } from '../geometry/walls';
+import { buildNodeMap, solveJunctions, wallLength, wallQuad } from '../geometry/walls';
 import { newRoomId } from './ids';
 import type { EntityRef, FloorPlan, Level, Room, Vec2 } from './types';
 
@@ -107,12 +107,15 @@ export function totalFloorArea(level: Level): number {
 /** Bounding box of everything drawn on a level, in plan meters. */
 export function levelBounds(level: Level): Bounds {
   const nodeMap = buildNodeMap(level.nodes);
+  const junctions = solveJunctions(nodeMap, level.walls);
   const points: Vec2[] = [];
 
   for (const wall of level.walls) {
-    const quad = wallQuad(wall, nodeMap, wallExtensions(wall, level.walls, nodeMap));
+    const quad = wallQuad(wall, nodeMap, junctions.walls.get(wall.id));
     if (quad) points.push(...quad.points);
   }
+
+  for (const block of junctions.blocks.values()) points.push(...block);
 
   for (const item of level.furniture) {
     const radius = Math.max(item.size.width, item.size.depth) / 2;

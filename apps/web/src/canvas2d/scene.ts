@@ -8,7 +8,7 @@ import {
   polygonCentroid,
   resolveMaterialSlots,
   resolveParts,
-  wallExtensions,
+  solveJunctions,
   wallLength,
   wallQuad,
   type Bounds,
@@ -104,6 +104,8 @@ export interface SceneNode {
 
 export interface PlanScene {
   walls: SceneWall[];
+  /** Filler polygons where three or more walls meet; see `solveJunctions`. */
+  junctions: Vec2[][];
   rooms: SceneRoom[];
   openings: SceneOpening[];
   furniture: SceneFurniture[];
@@ -169,6 +171,7 @@ function buildParts(item: FurnitureItem): ScenePart[] {
 
 export function buildScene(level: Level): PlanScene {
   const nodeMap = buildNodeMap(level.nodes);
+  const junctions = solveJunctions(nodeMap, level.walls);
 
   const walls: SceneWall[] = [];
   const wallById = new Map<string, SceneWall>();
@@ -178,7 +181,7 @@ export function buildScene(level: Level): PlanScene {
     const b = nodeMap.get(wall.b);
     if (!a || !b) continue;
 
-    const quad = wallQuad(wall, nodeMap, wallExtensions(wall, level.walls, nodeMap));
+    const quad = wallQuad(wall, nodeMap, junctions.walls.get(wall.id));
     if (!quad) continue;
 
     const entry: SceneWall = {
@@ -280,11 +283,22 @@ export function buildScene(level: Level): PlanScene {
   const points: Vec2[] = [];
   for (const wall of walls) points.push(...wall.quad.points);
   for (const item of furniture) points.push(...item.corners);
+  for (const block of junctions.blocks.values()) points.push(...block);
 
   const bounds =
     points.length > 0 ? polygonBounds(points) : { minX: -4, minY: -3, maxX: 4, maxY: 3 };
 
-  return { walls, rooms, openings, furniture, nodes, bounds, wallById, openingsByWall };
+  return {
+    walls,
+    junctions: [...junctions.blocks.values()],
+    rooms,
+    openings,
+    furniture,
+    nodes,
+    bounds,
+    wallById,
+    openingsByWall,
+  };
 }
 
 /** Distance from the item's front edge to its rotation handle, in meters. */
@@ -317,6 +331,7 @@ export function furnitureHandles(item: SceneFurniture): FurnitureHandles {
 
 export const EMPTY_SCENE: PlanScene = {
   walls: [],
+  junctions: [],
   rooms: [],
   openings: [],
   furniture: [],
