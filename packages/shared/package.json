@@ -1,0 +1,25 @@
+{
+  "name": "@spacecraft/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Domain model, geometry kernel, catalog and validation shared by the SpaceCraft web app and API",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "2.1.5",
+    "typescript": "5.6.3",
+    "vitest": "2.1.5"
+  }
+}
