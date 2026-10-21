@@ -44,42 +44,11 @@
     --radius: 0.625rem;
   }
 
-  /**
-   * The editor shell is intentionally dark-only — architectural tools read better on a dark
-   * canvas and it matches the product's visual identity. The light theme exists for the
-   * marketing/landing surface and for users who force a light color scheme.
+  /*
+   * The shell is dark-only by design: an architectural canvas reads better on a dark ground,
+   * and the 2D renderer paints with its own palette rather than CSS, so a light theme would
+   * have to be designed for the canvas too rather than toggled on.
    */
-  :root.light {
-    --background: 220 30% 97%;
-    --foreground: 222 47% 11%;
-
-    --surface-base: 220 30% 97%;
-    --surface-panel: 0 0% 100%;
-    --surface-raised: 220 24% 94%;
-    --surface-sunken: 220 26% 92%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 222 85% 52%;
-    --primary-foreground: 0 0% 100%;
-    --primary-muted: 222 90% 92%;
-
-    --secondary: 220 20% 93%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 220 20% 94%;
-    --muted-foreground: 220 12% 42%;
-
-    --accent: 220 24% 92%;
-    --accent-foreground: 222 47% 11%;
-
-    --border: 220 16% 86%;
-    --input: 220 16% 86%;
-  }
 
   * {
     @apply border-border;

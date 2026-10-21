@@ -297,7 +297,7 @@ o JSON.
 
 ```bash
 pnpm test        # 218 testes unitários (98 shared · 99 web · 21 api)
-pnpm test:e2e    # 15 fluxos ponta a ponta
+pnpm test:e2e    # 16 fluxos ponta a ponta
 ```
 
 | Pacote   | Cobertura                                                                                                                                                                                           |
@@ -326,6 +326,8 @@ CAPTURE_SCREENSHOTS=1 pnpm --filter @spacecraft/web test:e2e screenshots
 - **Paredes retas.** Sem curvas, sem paredes inclinadas, sem escadas.
 - **Desktop.** O editor é desenhado para ponteiro e teclado; abaixo de `lg` o layout fica
   apertado. Não há modo touch dedicado.
+- **Somente tema escuro.** O renderer 2D pinta com a própria paleta, não com CSS, então um tema
+  claro exigiria desenhar a planta de novo — e não meia dúzia de variáveis trocadas.
 - **Sem autenticação, por decisão de escopo.** Projetos no servidor são escopados por um id de
   workspace anônimo guardado no navegador. Quem tiver o id lê e escreve — os dados do servidor
   são explicitamente descartáveis.

@@ -1,8 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
+import { currentLevel } from '@spacecraft/shared';
 import { PlanCanvas } from '@/canvas2d/PlanCanvas';
 import { SceneCanvas } from '@/viewer3d/SceneCanvas';
 import { useEditorStore } from '@/store/editor-store';
+import { useProjectStore } from '@/store/project-store';
 import { clamp } from '@/lib/utils';
+import { PlanEmptyState } from './PlanEmptyState';
 
 const MIN_RATIO = 0.22;
 const MAX_RATIO = 0.78;
@@ -16,6 +19,10 @@ const MAX_RATIO = 0.78;
  */
 export function Viewport(): JSX.Element {
   const viewMode = useEditorStore((state) => state.viewMode);
+  const empty = useProjectStore((state) => {
+    const level = currentLevel(state.plan);
+    return level.walls.length === 0 && level.furniture.length === 0;
+  });
   const [ratio, setRatio] = useState(0.5);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,8 +37,9 @@ export function Viewport(): JSX.Element {
 
   if (viewMode === '2d') {
     return (
-      <div className="size-full" data-plan-canvas>
+      <div className="relative size-full" data-plan-canvas>
         <PlanCanvas />
+        {empty ? <PlanEmptyState /> : null}
       </div>
     );
   }
@@ -42,8 +50,9 @@ export function Viewport(): JSX.Element {
 
   return (
     <div ref={containerRef} className="flex size-full">
-      <div className="min-w-0" style={{ width: `${ratio * 100}%` }} data-plan-canvas>
+      <div className="relative min-w-0" style={{ width: `${ratio * 100}%` }} data-plan-canvas>
         <PlanCanvas />
+        {empty ? <PlanEmptyState /> : null}
       </div>
 
       <div

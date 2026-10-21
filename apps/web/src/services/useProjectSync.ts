@@ -107,7 +107,11 @@ export function useProjectBootstrap(ready: boolean): { loading: boolean } {
     void open();
 
     return () => {
+      // React's strict mode mounts, cleans up and mounts again. Without releasing the guard
+      // the second mount would skip the load while the first one's work has already been
+      // cancelled, leaving the splash on screen forever.
       cancelled = true;
+      started.current = false;
     };
   }, [ready, loadProject]);
 

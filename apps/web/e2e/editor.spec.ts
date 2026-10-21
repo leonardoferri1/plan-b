@@ -38,7 +38,7 @@ async function canvasBox(
  * keeps these tests meaningful: they describe *what* is being clicked ("the sofa", "bare
  * floor") rather than where it happened to land on one particular screen size.
  */
-async function worldPoint(page: Page, world: Point): Promise<Point> {
+async function worldPoint(page: Page, world: Point, center: Point = PLAN_CENTER): Promise<Point> {
   await page.keyboard.press('Shift+F');
 
   const readout = await page.getByText(/px\/m$/).innerText();
@@ -48,8 +48,8 @@ async function worldPoint(page: Page, world: Point): Promise<Point> {
   const box = await canvasBox(page);
 
   return {
-    x: box.x + (world.x - PLAN_CENTER.x) * zoom + box.width / 2,
-    y: box.y + (world.y - PLAN_CENTER.y) * zoom + box.height / 2,
+    x: box.x + (world.x - center.x) * zoom + box.width / 2,
+    y: box.y + (world.y - center.y) * zoom + box.height / 2,
   };
 }
 
@@ -222,6 +222,34 @@ test('captures the 3D view as a PNG', async ({ page }) => {
 
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/-3d-.*\.png$/);
+});
+
+test('guides the first step on a blank project', async ({ page }) => {
+  await page.getByRole('link', { name: 'Projetos' }).click();
+  await page.getByRole('button', { name: 'Novo projeto' }).click();
+
+  await expect(page.getByRole('button', { name: 'Novo projeto' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Planta em branco' })).toBeVisible();
+  await expect(page.locator(STATUS_BAR)).toContainText(/Ambientes\s*0/);
+
+  await page
+    .getByRole('listitem')
+    .filter({ hasText: 'Comece por um ambiente' })
+    .getByRole('button', { name: 'Usar' })
+    .click();
+
+  // An empty level frames a 10 x 10 m area centred on the origin.
+  const origin = { x: 0, y: 0 };
+  const from = await worldPoint(page, { x: -2, y: -1.5 }, origin);
+  const to = await worldPoint(page, { x: 2, y: 1.5 }, origin);
+
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps: 10 });
+  await page.mouse.up();
+
+  await expect(page.locator(STATUS_BAR)).toContainText(/Ambientes\s*1/);
+  await expect(page.getByRole('heading', { name: 'Planta em branco' })).toHaveCount(0);
 });
 
 test('lists the project in the library', async ({ page }) => {
