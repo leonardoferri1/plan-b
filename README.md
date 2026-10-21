@@ -76,6 +76,9 @@ Com a API no ar, o front detecta o backend em uma única sondagem de `/api/healt
 passa a salvar no servidor. Se o banco cair, a API responde `503` nas rotas de projeto e a
 interface informa onde os dados estão sendo gravados.
 
+Há um único arquivo de ambiente, na raiz: o `docker compose`, o `@nestjs/config`, o Vite
+(via `envDir`) e o CLI do Prisma (via `dotenv-cli`) leem todos o mesmo `.env`.
+
 ---
 
 ## Arquitetura
@@ -296,7 +299,7 @@ o JSON.
 ## Testes
 
 ```bash
-pnpm test        # 218 testes unitários (98 shared · 99 web · 21 api)
+pnpm test        # 229 testes unitários (98 shared · 99 web · 32 api)
 pnpm test:e2e    # 16 fluxos ponta a ponta
 ```
 
@@ -308,8 +311,12 @@ pnpm test:e2e    # 16 fluxos ponta a ponta
 
 A suíte E2E dirige o canvas de verdade, com eventos de ponteiro reais, convertendo coordenadas
 em metros para pixels a partir do zoom exibido na interface — ela quebra se o hit-testing, o
-snapping ou o laço de render regredirem. Ela roda sobre o build de produção, com a API
-deliberadamente fora do ar, que é exatamente o estado padrão da demo.
+snapping ou o laço de render regredirem. Ela roda sobre o build de produção e aborta a sondagem
+de `/api/health` na camada de rede, de modo que exercita o caminho sem backend — o estado padrão
+da demo — independentemente do que esteja rodando na máquina.
+
+A CI tem ainda um job com um PostgreSQL de verdade que aplica as migrações versionadas e falha
+se `schema.prisma` divergir delas.
 
 As imagens deste README são geradas pela própria suíte:
 

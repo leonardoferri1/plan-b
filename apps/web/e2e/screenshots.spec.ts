@@ -24,6 +24,9 @@ test.beforeAll(async () => {
 });
 
 test.beforeEach(async ({ page }) => {
+  // Documentation images must not depend on whether a backend happens to be running.
+  await page.route('**/api/health', (route) => route.abort());
+
   await page.addInitScript(() => window.localStorage.clear());
   await page.goto('/');
   await expect(page.getByRole('application', { name: /planta baixa/i })).toBeVisible();

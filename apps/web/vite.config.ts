@@ -7,6 +7,9 @@ const resolvePath = (relative: string): string => fileURLToPath(new URL(relative
 
 export default defineConfig({
   plugins: [react()],
+  // The stack keeps a single environment file at the repository root — the same one docker
+  // compose and the API read — so VITE_API_URL documented there actually reaches the client.
+  envDir: fileURLToPath(new URL('../..', import.meta.url)),
   resolve: {
     alias: {
       '@': resolvePath('./src'),

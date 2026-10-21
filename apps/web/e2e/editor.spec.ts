@@ -61,6 +61,11 @@ async function clickWorld(page: Page, world: Point): Promise<void> {
 const inspector = (page: Page) => page.getByRole('complementary', { name: 'Propriedades' });
 
 test.beforeEach(async ({ page }) => {
+  // The suite asserts the no-backend path, which is the portfolio demo's default state. Failing
+  // the health probe at the network layer makes that true regardless of whether the developer
+  // happens to have the API running locally.
+  await page.route('**/api/health', (route) => route.abort());
+
   // Playwright gives every test its own browser context, so local storage already starts
   // empty and the demo apartment is reseeded on each run.
   await page.goto('/');

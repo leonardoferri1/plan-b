@@ -8,7 +8,6 @@ import {
   Param,
   Patch,
   Post,
-  UsePipes,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -77,10 +76,10 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Create a project' })
   @ApiCreatedResponse({ type: ProjectDto })
   @ApiBadRequestResponse({ description: 'The floor plan failed schema validation.' })
-  @UsePipes(new ZodValidationPipe(createProjectSchema))
   create(
     @Workspace() workspaceId: string,
-    @Body() body: CreateProjectInput & CreateProjectDto,
+    @Body(new ZodValidationPipe(createProjectSchema))
+    body: CreateProjectInput & CreateProjectDto,
   ): Promise<Project> {
     return this.projects.create(workspaceId, { name: body.name, plan: body.plan });
   }
@@ -90,11 +89,11 @@ export class ProjectsController {
   @ApiOkResponse({ type: ProjectDto })
   @ApiNotFoundResponse({ description: 'No such project in this workspace.' })
   @ApiBadRequestResponse({ description: 'The floor plan failed schema validation.' })
-  @UsePipes(new ZodValidationPipe(updateProjectSchema))
   update(
     @Workspace() workspaceId: string,
     @Param('id') id: string,
-    @Body() body: UpdateProjectInput & UpdateProjectDto,
+    @Body(new ZodValidationPipe(updateProjectSchema))
+    body: UpdateProjectInput & UpdateProjectDto,
   ): Promise<Project> {
     return this.projects.update(workspaceId, id, body);
   }
@@ -103,11 +102,11 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Copy a project into the same workspace' })
   @ApiCreatedResponse({ type: ProjectDto })
   @ApiNotFoundResponse({ description: 'No such project in this workspace.' })
-  @UsePipes(new ZodValidationPipe(duplicateProjectSchema))
   duplicate(
     @Workspace() workspaceId: string,
     @Param('id') id: string,
-    @Body() body: DuplicateProjectInput & DuplicateProjectDto,
+    @Body(new ZodValidationPipe(duplicateProjectSchema))
+    body: DuplicateProjectInput & DuplicateProjectDto,
   ): Promise<Project> {
     return this.projects.duplicate(workspaceId, id, body.name);
   }

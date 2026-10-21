@@ -2,7 +2,7 @@
   "name": "@spacecraft/api",
   "version": "0.1.0",
   "private": true,
-  "description": "SpaceCraft REST API — project persistence with schema-versioned floor plans",
+  "description": "SpaceCraft REST API \u2014 project persistence with schema-versioned floor plans",
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
@@ -13,14 +13,14 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "prisma:generate": "dotenv -e ../../.env -- prisma generate",
+    "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "prisma:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "prisma:studio": "dotenv -e ../../.env -- prisma studio",
+    "prisma:seed": "dotenv -e ../../.env -- ts-node prisma/seed.ts"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "dotenv -e ../../.env -- ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "10.4.15",
@@ -42,6 +42,7 @@
     "@types/jest": "29.5.14",
     "@types/node": "22.9.0",
     "@types/supertest": "6.0.2",
+    "dotenv-cli": "7.4.4",
     "jest": "29.7.0",
     "prisma": "5.22.0",
     "supertest": "7.0.0",
