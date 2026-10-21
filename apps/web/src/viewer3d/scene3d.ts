@@ -49,6 +49,8 @@ export interface Prism3D {
   top: number;
   materialId: string;
   ownerId: string;
+  /** For a junction filler, the walls it joins; the cutaway hides it with the last of them. */
+  joins?: string[];
 }
 
 export interface GlassPane {
@@ -296,6 +298,7 @@ export function buildScene3D(level: Level): Scene3D {
       top: tallest.height,
       materialId: tallest.materialId,
       ownerId: tallest.id,
+      joins: incident.map((wall) => wall.id),
     });
   }
 

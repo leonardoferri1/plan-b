@@ -157,6 +157,7 @@ export function Structure({
   planCenter,
 }: StructureProps): JSX.Element {
   const groups = useRef(new Map<string, THREE.Group>());
+  const fillers = useRef(new Map<string, THREE.Mesh>());
 
   // Prism geometry is keyed by footprint, so an edit only rebuilds the walls it touched.
   const geometries = useMemo(
@@ -177,6 +178,8 @@ export function Structure({
    * wall, so the top view keeps the whole shell — no special case needed.
    */
   useFrame(({ camera }) => {
+    const hidden = new Set<string>();
+
     for (const wall of scene.walls) {
       const group = groups.current.get(wall.id);
       if (!group) continue;
@@ -195,6 +198,16 @@ export function Structure({
 
       const opposite = toCamera * toCenter < 0 && Math.abs(toCamera) > 0.2;
       group.visible = !opposite;
+      if (opposite) hidden.add(wall.id);
+    }
+
+    // A filler only exists to complete the walls around it: once every one of them has been
+    // cut away it has nothing to join, and would otherwise stand in the room as a lone post.
+    for (const filler of scene.junctions) {
+      const mesh = fillers.current.get(filler.key);
+      if (!mesh) continue;
+
+      mesh.visible = !cutaway || (filler.joins ?? []).some((wallId) => !hidden.has(wallId));
     }
   });
 
@@ -234,6 +247,10 @@ export function Structure({
         return (
           <mesh
             key={filler.key}
+            ref={(instance) => {
+              if (instance) fillers.current.set(filler.key, instance);
+              else fillers.current.delete(filler.key);
+            }}
             geometry={geometry}
             material={getSolidMaterial(filler.materialId, false)}
             castShadow
