@@ -2,7 +2,7 @@
   "name": "spacecraft",
   "private": true,
   "version": "0.1.0",
-  "description": "SpaceCraft — interactive 2D/3D interior design studio",
+  "description": "SpaceCraft \u2014 interactive 2D/3D interior design studio",
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20"
@@ -17,7 +17,7 @@
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml}\"",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm --filter @spacecraft/shared build && pnpm -r typecheck",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:migrate": "pnpm --filter @spacecraft/api prisma:migrate",

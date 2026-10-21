@@ -29,6 +29,10 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter @spacecraft/api prisma:generate
 
+      # The API typechecks against the shared package's emitted declarations.
+      - name: Build the shared package
+        run: pnpm --filter @spacecraft/shared build
+
       - name: Lint
         run: pnpm lint
 
