@@ -43,6 +43,8 @@ export interface ProjectStoreState {
   renameProject: (name: string) => void;
   resetToSample: () => void;
 
+  /** Adopts the id a repository assigned on first save, without disturbing the history. */
+  setProjectId: (id: string) => void;
   setSaveState: (state: SaveState, error?: string | null) => void;
   markSaved: (at?: string) => void;
   setLoading: (loading: boolean) => void;
@@ -135,6 +137,11 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => ({
 
   resetToSample() {
     get().loadProject(createSampleProject(), { markSaved: false });
+  },
+
+  setProjectId(id) {
+    if (!id || id === get().projectId) return;
+    set({ projectId: id });
   },
 
   setSaveState(state, error = null) {

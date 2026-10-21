@@ -44,7 +44,10 @@ export default tseslint.config(
     files: ['apps/api/**/*.ts'],
     rules: {
       '@typescript-eslint/no-extraneous-class': 'off',
-      '@typescript-eslint/interface-name-prefix': 'off',
+      // Nest resolves constructor dependencies from the metadata TypeScript emits for
+      // parameter types, so rewriting those imports as `import type` would erase them at
+      // runtime and break dependency injection.
+      '@typescript-eslint/consistent-type-imports': 'off',
     },
   },
   prettier,

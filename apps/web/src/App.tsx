@@ -3,6 +3,7 @@ import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { EditorPage } from '@/pages/EditorPage';
+import { ProjectsPage } from '@/pages/ProjectsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,6 +18,7 @@ const queryClient = new QueryClient({
 const router = createBrowserRouter([
   { path: '/', element: <EditorPage /> },
   { path: '/projeto/:projectId', element: <EditorPage /> },
+  { path: '/projetos', element: <ProjectsPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ]);
 

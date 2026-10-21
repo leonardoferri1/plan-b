@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Check, Cloud, Keyboard, Loader2, Redo2, Undo2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Check,
+  Cloud,
+  FolderOpen,
+  Keyboard,
+  Loader2,
+  Redo2,
+  Undo2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HintTooltip } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
@@ -186,6 +195,13 @@ export function TopBar(): JSX.Element {
       </div>
 
       <Separator orientation="vertical" className="mx-1 h-5" />
+
+      <Button variant="ghost" size="sm" asChild>
+        <Link to="/projetos">
+          <FolderOpen />
+          <span className="hidden lg:inline">Projetos</span>
+        </Link>
+      </Button>
 
       <HintTooltip side="bottom" label="Atalhos do teclado" shortcut="?">
         <Button

@@ -1,0 +1,30 @@
+// SpaceCraft persistence schema.
+//
+// A project is stored as a name plus the floor plan as JSONB. The plan is a deeply nested,
+// schema-versioned document that is always read and written as a whole, so normalising walls,
+// rooms and furniture into tables would buy nothing and cost a join-heavy read on every load.
+// `schemaVersion` is lifted out of the JSON so old payloads can be found without scanning it.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  name          String   @db.VarChar(120)
+  /// Anonymous demo workspace the project belongs to; sent as the x-workspace-id header.
+  workspaceId   String   @map("workspace_id") @db.VarChar(64)
+  /// Mirror of plan.schemaVersion, kept as a column so migrations can target old rows.
+  schemaVersion Int      @map("schema_version")
+  plan          Json
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([workspaceId, updatedAt(sort: Desc)])
+  @@map("projects")
+}
