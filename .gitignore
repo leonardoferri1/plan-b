@@ -38,3 +38,6 @@ apps/api/prisma/generated/
 # vite writes a transient config bundle next to vite.config.ts
 vite.config.ts.timestamp-*
 vite.config.js.timestamp-*
+
+# editor/agent tooling
+.claude/
