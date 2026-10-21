@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { PlanCanvas } from '@/canvas2d/PlanCanvas';
 import { CatalogPanel } from '@/features/catalog/CatalogPanel';
 import { Inspector } from '@/features/inspector/Inspector';
 import { ShortcutsDialog } from '@/features/shell/ShortcutsDialog';
@@ -7,6 +6,7 @@ import { StatusBar } from '@/features/shell/StatusBar';
 import { Toolbar } from '@/features/shell/Toolbar';
 import { TopBar } from '@/features/shell/TopBar';
 import { ViewControls, useFitToPlan } from '@/features/shell/ViewControls';
+import { Viewport } from '@/features/shell/Viewport';
 import { useEditorShortcuts } from '@/hooks/useEditorShortcuts';
 
 export function EditorPage(): JSX.Element {
@@ -29,8 +29,8 @@ export function EditorPage(): JSX.Element {
         <Toolbar />
         <CatalogPanel />
 
-        <main className="relative min-w-0 flex-1 bg-surface-sunken" data-plan-canvas>
-          <PlanCanvas />
+        <main className="relative min-w-0 flex-1 bg-surface-sunken">
+          <Viewport />
 
           <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center">
             <ViewControls />

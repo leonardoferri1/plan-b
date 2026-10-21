@@ -34,6 +34,8 @@ export interface EditorStoreState {
   gridVisible: boolean;
   dimensionsVisible: boolean;
   furnitureVisible: boolean;
+  /** Hides the walls between the camera and the interior in the 3D view. */
+  wallCutaway: boolean;
 
   catalogOpen: boolean;
   inspectorOpen: boolean;
@@ -63,6 +65,7 @@ export interface EditorStoreState {
   toggleGrid: () => void;
   toggleDimensions: () => void;
   toggleFurniture: () => void;
+  toggleWallCutaway: () => void;
   setCatalogOpen: (open: boolean) => void;
   setInspectorOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
@@ -86,6 +89,7 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   gridVisible: true,
   dimensionsVisible: true,
   furnitureVisible: true,
+  wallCutaway: true,
 
   catalogOpen: true,
   inspectorOpen: true,
@@ -184,6 +188,10 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
 
   toggleFurniture() {
     set({ furnitureVisible: !get().furnitureVisible });
+  },
+
+  toggleWallCutaway() {
+    set({ wallCutaway: !get().wallCutaway });
   },
 
   setCatalogOpen(catalogOpen) {
