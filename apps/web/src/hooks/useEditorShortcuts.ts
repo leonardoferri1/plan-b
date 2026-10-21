@@ -10,6 +10,7 @@ import {
 import { useEditorStore, type ToolId } from '@/store/editor-store';
 import { useProjectStore } from '@/store/project-store';
 import { useFitToPlan } from '@/features/shell/ViewControls';
+import { saveNow } from '@/services/useProjectSync';
 
 const TOOL_KEYS: Record<string, ToolId> = {
   v: 'select',
@@ -60,6 +61,14 @@ export function useEditorShortcuts(): void {
       if (meta && key === 'y') {
         event.preventDefault();
         project.redo();
+        return;
+      }
+
+      if (meta && key === 's') {
+        event.preventDefault();
+        void saveNow().catch(() => {
+          // The store already carries the error state the top bar renders.
+        });
         return;
       }
 

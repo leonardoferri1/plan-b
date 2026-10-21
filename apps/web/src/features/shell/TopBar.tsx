@@ -24,6 +24,7 @@ import {
   type SaveState,
 } from '@/store/project-store';
 import { useEditorStore } from '@/store/editor-store';
+import { ExportMenu } from '@/features/export/ExportMenu';
 
 const SAVE_LABELS: Record<SaveState, string> = {
   saved: 'Salvo',
@@ -202,6 +203,8 @@ export function TopBar(): JSX.Element {
           <span className="hidden lg:inline">Projetos</span>
         </Link>
       </Button>
+
+      <ExportMenu />
 
       <HintTooltip side="bottom" label="Atalhos do teclado" shortcut="?">
         <Button
