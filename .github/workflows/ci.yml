@@ -140,5 +140,9 @@ jobs:
           --to-schema-datamodel prisma/schema.prisma
           --exit-code
 
+      # The seed is TypeScript and imports the generated client's types.
+      - name: Generate Prisma client
+        run: pnpm --filter @spacecraft/api exec prisma generate
+
       - name: Seed the demo project
         run: pnpm --filter @spacecraft/api exec ts-node prisma/seed.ts
