@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 214 32% 91%;
+
+    --surface-base: 222 47% 6%;
+    --surface-panel: 221 42% 9%;
+    --surface-raised: 220 38% 13%;
+    --surface-sunken: 223 48% 4%;
+
+    --card: 221 42% 9%;
+    --card-foreground: 214 32% 91%;
+
+    --popover: 220 40% 11%;
+    --popover-foreground: 214 32% 91%;
+
+    --primary: 222 90% 58%;
+    --primary-foreground: 210 40% 98%;
+    --primary-muted: 222 75% 22%;
+
+    --secondary: 220 32% 16%;
+    --secondary-foreground: 214 32% 91%;
+
+    --muted: 220 30% 15%;
+    --muted-foreground: 217 16% 62%;
+
+    --accent: 220 34% 18%;
+    --accent-foreground: 214 32% 95%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 152 58% 45%;
+    --warning: 38 92% 56%;
+
+    --border: 219 32% 18%;
+    --input: 219 32% 18%;
+    --ring: 222 90% 58%;
+
+    --radius: 0.625rem;
+  }
+
+  /**
+   * The editor shell is intentionally dark-only — architectural tools read better on a dark
+   * canvas and it matches the product's visual identity. The light theme exists for the
+   * marketing/landing surface and for users who force a light color scheme.
+   */
+  :root.light {
+    --background: 220 30% 97%;
+    --foreground: 222 47% 11%;
+
+    --surface-base: 220 30% 97%;
+    --surface-panel: 0 0% 100%;
+    --surface-raised: 220 24% 94%;
+    --surface-sunken: 220 26% 92%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 222 85% 52%;
+    --primary-foreground: 0 0% 100%;
+    --primary-muted: 222 90% 92%;
+
+    --secondary: 220 20% 93%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 12% 42%;
+
+    --accent: 220 24% 92%;
+    --accent-foreground: 222 47% 11%;
+
+    --border: 220 16% 86%;
+    --input: 220 16% 86%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      'cv02' 1,
+      'cv03' 1,
+      'cv04' 1,
+      'ss01' 1;
+    overscroll-behavior: none;
+  }
+
+  /* Thin, unobtrusive scrollbars that match the panels. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full border-[3px] border-solid border-transparent bg-border bg-clip-padding;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  /* Hairline grid used behind empty states and the landing hero. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.4) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.4) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .panel {
+    @apply rounded-xl border border-border bg-surface-panel shadow-panel;
+  }
+
+  /* Numeric readouts in the inspector and on the plan dimensions. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
