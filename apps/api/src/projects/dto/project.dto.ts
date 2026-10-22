@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 /**
  * These classes exist purely so that `@nestjs/swagger` can describe the HTTP contract.
  *
- * Runtime validation is done by the zod schemas in `@spacecraft/shared` — the same ones the
+ * Runtime validation is done by the zod schemas in `@plan-b/shared` — the same ones the
  * browser uses — rather than by decorators, so there is exactly one definition of what a valid
  * floor plan is. Keeping the two concerns apart avoids the usual drift between a DTO and the
  * domain model it is supposed to mirror.

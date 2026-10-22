@@ -5,7 +5,7 @@ import {
   resolveMaterialSlots,
   resolveParts,
   type Size3,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { shade } from '@/canvas2d/colors';
 import { cn } from '@/lib/utils';
 

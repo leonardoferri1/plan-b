@@ -1,6 +1,6 @@
 <div align="center">
 
-# SpaceCraft
+# Plan B
 
 **Estúdio de design de interiores 2D/3D no navegador.**
 Desenhe a planta baixa e veja o ambiente tomar forma em 3D, em tempo real.
@@ -9,13 +9,13 @@ Desenhe a planta baixa e veja o ambiente tomar forma em 3D, em tempo real.
 [Modelo de dados](#modelo-de-dados) · [Decisões técnicas](#decisões-técnicas) ·
 [Limitações](#limitações-atuais) · [Próximos passos](#próximos-passos)
 
-![Editor SpaceCraft em vista 3D](docs/editor-3d.png)
+![Editor Plan B em vista 3D](docs/editor-3d.png)
 
 </div>
 
 ---
 
-SpaceCraft é um editor espacial completo: paredes como um grafo de cantos compartilhados,
+Plan B é um editor espacial completo: paredes como um grafo de cantos compartilhados,
 ambientes detectados automaticamente a partir dos ciclos fechados, portas e janelas que viram
 vãos de verdade na cena 3D, catálogo de móveis procedurais e histórico de comandos com
 desfazer/refazer. Abre direto no editor, com um apartamento mobiliado de exemplo e **sem
@@ -84,10 +84,10 @@ Há um único arquivo de ambiente, na raiz: o `docker compose`, o `@nestjs/confi
 ## Arquitetura
 
 ```
-spacecraft/
-├─ packages/shared     @spacecraft/shared  domínio, geometria, catálogo, validação
-├─ apps/web            @spacecraft/web     editor React (canvas 2D + cena R3F)
-└─ apps/api            @spacecraft/api     API REST NestJS + Prisma + PostgreSQL
+plan-b/
+├─ packages/shared     @plan-b/shared  domínio, geometria, catálogo, validação
+├─ apps/web            @plan-b/web     editor React (canvas 2D + cena R3F)
+└─ apps/api            @plan-b/api     API REST NestJS + Prisma + PostgreSQL
 ```
 
 O fluxo de dependências é estritamente unidirecional: `shared` não conhece nem o front nem o
@@ -95,7 +95,7 @@ back; ambos dependem apenas dele.
 
 ```
                        ┌───────────────────────────────┐
-                       │      @spacecraft/shared       │
+                       │      @plan-b/shared       │
                        │  tipos · geometria · zod ·    │
                        │  catálogo · migrações         │
                        └───────┬───────────────┬───────┘
@@ -325,7 +325,7 @@ o JSON.
 ## Testes
 
 ```bash
-pnpm test        # 267 testes unitários (114 shared · 121 web · 32 api)
+pnpm test        # 272 testes unitários (114 shared · 126 web · 32 api)
 pnpm test:e2e    # 16 fluxos ponta a ponta
 ```
 
@@ -347,7 +347,7 @@ se `schema.prisma` divergir delas.
 As imagens deste README são geradas pela própria suíte:
 
 ```bash
-CAPTURE_SCREENSHOTS=1 pnpm --filter @spacecraft/web test:e2e screenshots
+CAPTURE_SCREENSHOTS=1 pnpm --filter @plan-b/web test:e2e screenshots
 ```
 
 ---

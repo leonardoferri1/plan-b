@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSampleProject, CURRENT_SCHEMA_VERSION } from '@spacecraft/shared';
+import { createSampleProject, CURRENT_SCHEMA_VERSION } from '@plan-b/shared';
 import { buildProjectFile, parseProjectFile } from './project-file';
 import { slugify, timestamp } from './download';
 
@@ -7,7 +7,7 @@ describe('buildProjectFile', () => {
   it('wraps the project in a versioned envelope', () => {
     const file = buildProjectFile(createSampleProject());
 
-    expect(file.format).toBe('spacecraft-project');
+    expect(file.format).toBe('plan-b-project');
     expect(file.formatVersion).toBe(1);
     expect(file.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(file.project.name).toBe('Apartamento Aurora');
@@ -15,6 +15,12 @@ describe('buildProjectFile', () => {
 });
 
 describe('parseProjectFile', () => {
+  it('imports files exported before the rename', () => {
+    const project = createSampleProject();
+    const legacy = { ...buildProjectFile(project), format: 'spacecraft-project' };
+    expect(parseProjectFile(JSON.stringify(legacy)).project).toEqual(project);
+  });
+
   it('round-trips an exported file without losing geometry', () => {
     const project = createSampleProject();
     const raw = JSON.stringify(buildProjectFile(project));
@@ -48,9 +54,7 @@ describe('parseProjectFile', () => {
   });
 
   it('rejects an envelope with no project', () => {
-    const result = parseProjectFile(
-      JSON.stringify({ format: 'spacecraft-project', formatVersion: 1 }),
-    );
+    const result = parseProjectFile(JSON.stringify({ format: 'plan-b-project', formatVersion: 1 }));
 
     expect(result.ok).toBe(false);
   });
@@ -79,7 +83,7 @@ describe('file naming', () => {
   });
 
   it('falls back when a name has no usable characters', () => {
-    expect(slugify('***')).toBe('spacecraft');
+    expect(slugify('***')).toBe('plan-b');
   });
 
   it('formats a sortable timestamp', () => {

@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test';
  * Regenerates the images used by the README.
  *
  * Kept out of the normal run — it writes files into the repository — and enabled with
- * `CAPTURE_SCREENSHOTS=1 pnpm --filter @spacecraft/web test:e2e screenshots`. Keeping it as a
+ * `CAPTURE_SCREENSHOTS=1 pnpm --filter @plan-b/web test:e2e screenshots`. Keeping it as a
  * Playwright spec rather than a loose script means the documentation screenshots are produced
  * by the same build the E2E suite verifies.
  */

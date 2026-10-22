@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 /**
- * The SpaceCraft mark: an isometric cube drawn from three rhombi, echoing the extruded volumes
+ * The Plan B mark: an isometric cube drawn from three rhombi, echoing the extruded volumes
  * the product builds. Rendered as inline SVG so it inherits colour and stays crisp at any size.
  */
 export function Logo({ className }: { className?: string }): JSX.Element {
@@ -31,7 +31,7 @@ export function Wordmark({ className }: { className?: string }): JSX.Element {
   return (
     <span className={cn('flex items-center gap-2', className)}>
       <Logo className="size-6" />
-      <span className="text-sm font-semibold tracking-tight">SpaceCraft</span>
+      <span className="text-sm font-semibold tracking-tight">Plan B</span>
     </span>
   );
 }

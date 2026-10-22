@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { PartShape } from '@spacecraft/shared';
+import type { PartShape } from '@plan-b/shared';
 
 /**
  * Unit primitives shared by every mesh in the scene.

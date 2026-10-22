@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CURRENT_SCHEMA_VERSION } from '@spacecraft/shared';
+import { CURRENT_SCHEMA_VERSION } from '@plan-b/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
 @ApiTags('health')

@@ -1,4 +1,4 @@
-import { MATERIAL_PRESETS, getMaterial, type MaterialPreset } from '@spacecraft/shared';
+import { MATERIAL_PRESETS, getMaterial, type MaterialPreset } from '@plan-b/shared';
 import { Label } from '@/components/ui/label';
 import { HintTooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';

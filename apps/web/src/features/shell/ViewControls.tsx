@@ -1,6 +1,6 @@
 import { Box, Columns2, Eye, Grid2x2, Maximize, Minus, Plus, Scissors, Square } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { currentLevel, levelBounds } from '@spacecraft/shared';
+import { currentLevel, levelBounds } from '@plan-b/shared';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { HintTooltip } from '@/components/ui/tooltip';

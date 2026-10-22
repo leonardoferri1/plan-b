@@ -8,7 +8,7 @@ import {
   roomArea,
   wallLength,
   type FloorPlan,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import {
   addFurniture,
   addOpening,

@@ -29,7 +29,7 @@ import {
   type Project,
   type ProjectSummary,
   type UpdateProjectInput,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { WORKSPACE_HEADER, Workspace } from '../common/workspace.decorator';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import {

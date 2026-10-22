@@ -1,27 +1,27 @@
 {
-  "name": "spacecraft",
+  "name": "plan-b",
   "private": true,
   "version": "0.1.0",
-  "description": "SpaceCraft \u2014 interactive 2D/3D interior design studio",
+  "description": "Plan B \u2014 interactive 2D/3D interior design studio",
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --filter @spacecraft/web dev",
-    "dev:api": "pnpm --filter @spacecraft/api start:dev",
-    "dev:all": "pnpm --parallel --filter @spacecraft/web --filter @spacecraft/api dev",
-    "build": "pnpm --filter @spacecraft/shared build && pnpm --filter @spacecraft/web build && pnpm --filter @spacecraft/api build",
-    "test": "pnpm --filter @spacecraft/shared test && pnpm --filter @spacecraft/web test && pnpm --filter @spacecraft/api test",
-    "test:e2e": "pnpm --filter @spacecraft/web test:e2e",
+    "dev": "pnpm --filter @plan-b/web dev",
+    "dev:api": "pnpm --filter @plan-b/api start:dev",
+    "dev:all": "pnpm --parallel --filter @plan-b/web --filter @plan-b/api dev",
+    "build": "pnpm --filter @plan-b/shared build && pnpm --filter @plan-b/web build && pnpm --filter @plan-b/api build",
+    "test": "pnpm --filter @plan-b/shared test && pnpm --filter @plan-b/web test && pnpm --filter @plan-b/api test",
+    "test:e2e": "pnpm --filter @plan-b/web test:e2e",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml}\"",
-    "typecheck": "pnpm --filter @spacecraft/shared build && pnpm -r typecheck",
+    "typecheck": "pnpm --filter @plan-b/shared build && pnpm -r typecheck",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
-    "db:migrate": "pnpm --filter @spacecraft/api prisma:migrate",
-    "db:seed": "pnpm --filter @spacecraft/api prisma:seed"
+    "db:migrate": "pnpm --filter @plan-b/api prisma:migrate",
+    "db:seed": "pnpm --filter @plan-b/api prisma:seed"
   },
   "devDependencies": {
     "@eslint/js": "9.15.0",

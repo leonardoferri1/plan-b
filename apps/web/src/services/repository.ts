@@ -5,8 +5,9 @@ import {
   planStats,
   type Project,
   type ProjectSummary,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { WORKSPACE_HEADER, getWorkspaceId } from './workspace';
+import { readStoredValue } from './storage';
 
 /**
  * Persistence boundary.
@@ -25,7 +26,7 @@ export interface ProjectRepository {
   remove(id: string): Promise<void>;
 }
 
-const STORAGE_KEY = 'spacecraft:projects:v1';
+const STORAGE_KEY = 'plan-b:projects:v1';
 
 function toSummary(project: Project): ProjectSummary {
   const stats = planStats(currentLevel(project.plan));
@@ -51,7 +52,7 @@ export class LocalProjectRepository implements ProjectRepository {
 
   private read(): Record<string, Project> {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = readStoredValue(STORAGE_KEY);
       if (!raw) return {};
 
       const parsed: unknown = JSON.parse(raw);

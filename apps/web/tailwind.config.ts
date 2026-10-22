@@ -2,7 +2,7 @@ import type { Config } from 'tailwindcss';
 import animate from 'tailwindcss-animate';
 
 /**
- * The SpaceCraft editor shell is a dark, architectural interface: deep navy surfaces, a single
+ * The Plan B editor shell is a dark, architectural interface: deep navy surfaces, a single
  * electric-blue accent, hairline borders and generous negative space. Colours are declared as
  * HSL channels in `index.css` so that Tailwind, shadcn primitives and the canvas renderers all
  * read from the same tokens.

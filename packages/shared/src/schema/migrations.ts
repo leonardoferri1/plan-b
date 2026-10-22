@@ -48,7 +48,7 @@ export class UnsupportedSchemaVersionError extends Error {
   ) {
     super(
       `Esta planta foi salva no formato ${version}, mais novo que o suportado (${supported}). ` +
-        'Atualize o SpaceCraft para abri-la.',
+        'Atualize o Plan B para abri-la.',
     );
     this.name = 'UnsupportedSchemaVersionError';
   }

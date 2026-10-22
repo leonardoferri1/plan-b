@@ -201,7 +201,7 @@ test('exports the project as JSON', async ({ page }) => {
   await page.getByRole('menuitem', { name: 'Exportar JSON' }).click();
 
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toContain('.spacecraft.json');
+  expect(download.suggestedFilename()).toContain('.plan-b.json');
 });
 
 test('exports the plan as a PNG image', async ({ page }) => {

@@ -18,7 +18,7 @@ import {
   type OpeningKind,
   type Vec2,
   type WallQuad,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { PLAN_COLORS, shade } from './colors';
 
 /**

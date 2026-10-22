@@ -5,7 +5,7 @@ import {
   levelBounds,
   planStats,
   type FloorPlan,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { PLAN_COLORS } from '@/canvas2d/colors';
 import { renderPlan } from '@/canvas2d/renderer';
 import { buildScene } from '@/canvas2d/scene';
@@ -123,7 +123,7 @@ function drawTitleBlock(
 
   ctx.fillStyle = '#7d8ca8';
   ctx.font = '400 12px Inter, system-ui, sans-serif';
-  ctx.fillText('SpaceCraft · planta baixa', 32, top + 58);
+  ctx.fillText('Plan B · planta baixa', 32, top + 58);
 
   const facts = [
     `${stats.rooms} ambientes`,

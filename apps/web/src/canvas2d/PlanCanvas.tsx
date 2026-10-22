@@ -10,7 +10,7 @@ import {
   toWallLocal,
   type EntityRef,
   type Vec2,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import {
   addFurniture,
   addOpening,
@@ -742,14 +742,14 @@ export function PlanCanvas({ className }: { className?: string }): JSX.Element {
   // ── Drag and drop from the catalog ───────────────────────────────────────
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLCanvasElement>): void => {
-    if (!event.dataTransfer.types.includes('application/x-spacecraft-item')) return;
+    if (!event.dataTransfer.types.includes('application/x-plan-b-item')) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
   }, []);
 
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLCanvasElement>): void => {
-      const catalogId = event.dataTransfer.getData('application/x-spacecraft-item');
+      const catalogId = event.dataTransfer.getData('application/x-plan-b-item');
       if (!catalogId || !getCatalogItem(catalogId)) return;
 
       event.preventDefault();

@@ -1,4 +1,4 @@
-import { formatArea, formatMeters } from '@spacecraft/shared';
+import { formatArea, formatMeters } from '@plan-b/shared';
 import { useProjectStore, selectStats } from '@/store/project-store';
 import { useEditorStore } from '@/store/editor-store';
 import { TOOLS } from './Toolbar';

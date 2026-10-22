@@ -15,7 +15,7 @@ export default defineConfig({
       '@': resolvePath('./src'),
       // Point at the workspace source rather than its build output so that editing the domain
       // model hot-reloads the editor instead of requiring a rebuild.
-      '@spacecraft/shared': resolvePath('../../packages/shared/src/index.ts'),
+      '@plan-b/shared': resolvePath('../../packages/shared/src/index.ts'),
     },
   },
   server: {

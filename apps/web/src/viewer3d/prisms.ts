@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { signedArea, type Vec2 } from '@spacecraft/shared';
+import { signedArea, type Vec2 } from '@plan-b/shared';
 import type { Prism3D } from './scene3d';
 
 /**

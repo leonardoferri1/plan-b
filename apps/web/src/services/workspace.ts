@@ -1,5 +1,7 @@
-const WORKSPACE_KEY = 'spacecraft:workspace-id';
-const LAST_PROJECT_KEY = 'spacecraft:last-project-id';
+import { readStoredValue } from './storage';
+
+const WORKSPACE_KEY = 'plan-b:workspace-id';
+const LAST_PROJECT_KEY = 'plan-b:last-project-id';
 
 export const WORKSPACE_HEADER = 'x-workspace-id';
 
@@ -24,7 +26,7 @@ function randomId(): string {
  */
 export function getWorkspaceId(): string {
   try {
-    const existing = localStorage.getItem(WORKSPACE_KEY);
+    const existing = readStoredValue(WORKSPACE_KEY);
     if (existing) return existing;
 
     const created = `ws-${randomId()}`;
@@ -38,7 +40,7 @@ export function getWorkspaceId(): string {
 
 export function getLastProjectId(): string | null {
   try {
-    return localStorage.getItem(LAST_PROJECT_KEY);
+    return readStoredValue(LAST_PROJECT_KEY);
   } catch {
     return null;
   }
@@ -46,6 +48,7 @@ export function getLastProjectId(): string | null {
 
 export function setLastProjectId(id: string | null): void {
   try {
+    localStorage.removeItem('spacecraft:last-project-id');
     if (id) localStorage.setItem(LAST_PROJECT_KEY, id);
     else localStorage.removeItem(LAST_PROJECT_KEY);
   } catch {

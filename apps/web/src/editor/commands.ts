@@ -17,7 +17,7 @@ import {
   wallDirection,
   wallEndpoints,
   wallLength,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import type {
   EntityRef,
   FloorPlan,
@@ -30,7 +30,7 @@ import type {
   Size3,
   Vec2,
   Wall,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import type { CommandLike } from './history';
 
 /**

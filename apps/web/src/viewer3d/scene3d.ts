@@ -12,7 +12,7 @@ import {
   type OpeningKind,
   type PartShape,
   type Vec2,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 
 /**
  * Derived 3D geometry, built once per document change.

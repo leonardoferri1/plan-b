@@ -9,7 +9,7 @@ import {
   type FloorPlan,
   type Project,
   type ProjectSummary,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface CreateProjectData {

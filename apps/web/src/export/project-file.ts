@@ -1,7 +1,7 @@
-import { CURRENT_SCHEMA_VERSION, parseProject, type Project } from '@spacecraft/shared';
+import { CURRENT_SCHEMA_VERSION, parseProject, type Project } from '@plan-b/shared';
 import { downloadBlob, slugify, timestamp } from './download';
 
-export const PROJECT_FILE_EXTENSION = '.spacecraft.json';
+export const PROJECT_FILE_EXTENSION = '.plan-b.json';
 
 /**
  * Envelope written to disk.
@@ -12,7 +12,7 @@ export const PROJECT_FILE_EXTENSION = '.spacecraft.json';
  * exported file is validated and migrated exactly like any other stored payload.
  */
 export interface ProjectFile {
-  format: 'spacecraft-project';
+  format: 'plan-b-project';
   formatVersion: 1;
   schemaVersion: number;
   exportedAt: string;
@@ -22,11 +22,11 @@ export interface ProjectFile {
 
 export function buildProjectFile(project: Project): ProjectFile {
   return {
-    format: 'spacecraft-project',
+    format: 'plan-b-project',
     formatVersion: 1,
     schemaVersion: project.plan.schemaVersion ?? CURRENT_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
-    application: 'SpaceCraft',
+    application: 'Plan B',
     project,
   };
 }
@@ -63,8 +63,11 @@ export function parseProjectFile(raw: string): ImportResult {
     return { ok: false, errors: ['O arquivo não contém um projeto.'] };
   }
 
-  const envelope = payload as Partial<ProjectFile>;
-  const candidate = envelope.format === 'spacecraft-project' ? envelope.project : payload;
+  const envelope = payload as { format?: string; project?: Project };
+  const candidate =
+    envelope.format === 'plan-b-project' || envelope.format === 'spacecraft-project'
+      ? envelope.project
+      : payload;
 
   if (!candidate) {
     return { ok: false, errors: ['O arquivo não contém um projeto.'] };

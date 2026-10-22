@@ -2,7 +2,7 @@ import { useEffect, useRef, type ElementRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import type { Bounds } from '@spacecraft/shared';
+import type { Bounds } from '@plan-b/shared';
 import type { CameraPreset } from '@/store/editor-store';
 
 /** drei exposes the controls implementation type only through its ref. */

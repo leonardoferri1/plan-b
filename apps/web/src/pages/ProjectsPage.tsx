@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ArrowLeft, Copy, HardDrive, Plus, Server, Trash2 } from 'lucide-react';
-import { createEmptyProject, createSampleProject, formatArea } from '@spacecraft/shared';
+import { createEmptyProject, createSampleProject, formatArea } from '@plan-b/shared';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { getRepository } from '@/services/repository';

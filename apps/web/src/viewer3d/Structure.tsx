@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import type { EntityRef } from '@spacecraft/shared';
+import type { EntityRef } from '@plan-b/shared';
 import type { FloorShape3D, Scene3D, WallGroup3D } from './scene3d';
 import { resolvePrismGeometries } from './prisms';
 import { getGlassMaterial, getSolidMaterial, getSurfaceMaterial } from './materials';

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
-import type { EntityRef } from '@spacecraft/shared';
+import type { EntityRef } from '@plan-b/shared';
 import { getLampMaterial, getSolidMaterial } from './materials';
 import { getUnitGeometry } from './geometries';
 import type { Furniture3D } from './scene3d';

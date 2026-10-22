@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { currentLevel, type EntityRef, type Vec2 } from '@spacecraft/shared';
+import { currentLevel, type EntityRef, type Vec2 } from '@plan-b/shared';
 import {
   deleteEntities,
   duplicateFurniture,

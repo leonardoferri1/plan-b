@@ -5,7 +5,7 @@ import {
   formatMeters,
   wallLength,
   type Opening,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { deleteEntities, moveOpening, setOpeningProperties } from '@/editor/commands';

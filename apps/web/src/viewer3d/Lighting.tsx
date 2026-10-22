@@ -1,5 +1,5 @@
 import { Environment, Lightformer } from '@react-three/drei';
-import type { Bounds } from '@spacecraft/shared';
+import type { Bounds } from '@plan-b/shared';
 
 /**
  * Lighting rig: a warm key light casting soft shadows, a cool sky fill, and a small studio

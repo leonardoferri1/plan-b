@@ -1,5 +1,5 @@
 import { Copy, Lock, Trash2, Unlock } from 'lucide-react';
-import { formatArea, getCatalogItem, type FurnitureItem } from '@spacecraft/shared';
+import { formatArea, getCatalogItem, type FurnitureItem } from '@plan-b/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CURRENT_SCHEMA_VERSION, createSampleProject, currentLevel } from '@spacecraft/shared';
+import { CURRENT_SCHEMA_VERSION, createSampleProject, currentLevel } from '@plan-b/shared';
 import { addFurniture, deleteEntities, moveFurniture } from '@/editor/commands';
 import {
   selectCanRedo,

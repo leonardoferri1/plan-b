@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSampleLevel, type Level, type Opening } from '@spacecraft/shared';
+import { createSampleLevel, type Level, type Opening } from '@plan-b/shared';
 import { buildScene3D, planRotationToThree } from './scene3d';
 
 const sample = (): Level => createSampleLevel();

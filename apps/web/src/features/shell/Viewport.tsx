@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { currentLevel } from '@spacecraft/shared';
+import { currentLevel } from '@plan-b/shared';
 import { PlanCanvas } from '@/canvas2d/PlanCanvas';
 import { SceneCanvas } from '@/viewer3d/SceneCanvas';
 import { useEditorStore } from '@/store/editor-store';

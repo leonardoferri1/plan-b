@@ -1,5 +1,5 @@
 import { ChevronRight, PanelRightOpen, Trash2 } from 'lucide-react';
-import { currentLevel } from '@spacecraft/shared';
+import { currentLevel } from '@plan-b/shared';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { HintTooltip } from '@/components/ui/tooltip';

@@ -1,4 +1,4 @@
-import type { Bounds, Vec2 } from '@spacecraft/shared';
+import type { Bounds, Vec2 } from '@plan-b/shared';
 import { clamp } from '@/lib/utils';
 import { ZOOM_LIMITS } from '@/store/editor-store';
 

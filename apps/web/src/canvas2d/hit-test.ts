@@ -4,7 +4,7 @@ import {
   pointInPolygon,
   type EntityRef,
   type Vec2,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import type { PlanScene, SceneFurniture } from './scene';
 
 export interface HitResult {

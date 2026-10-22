@@ -148,10 +148,10 @@ export function TopBar(): JSX.Element {
       <Link
         to="/"
         className="flex items-center gap-2 rounded-md px-1 py-1 transition-opacity hover:opacity-80"
-        aria-label="SpaceCraft — início"
+        aria-label="Plan B — início"
       >
         <Logo className="size-6" />
-        <span className="hidden text-sm font-semibold tracking-tight md:inline">SpaceCraft</span>
+        <span className="hidden text-sm font-semibold tracking-tight md:inline">Plan B</span>
       </Link>
 
       <Separator orientation="vertical" className="mx-1 h-5" />

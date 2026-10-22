@@ -1,25 +1,25 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: spacecraft-postgres
+    container_name: plan-b-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-spacecraft}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-spacecraft}
-      POSTGRES_DB: ${POSTGRES_DB:-spacecraft}
+      POSTGRES_USER: ${POSTGRES_USER:-plan-b}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-plan-b}
+      POSTGRES_DB: ${POSTGRES_DB:-plan-b}
     ports:
       - '${POSTGRES_PORT:-5432}:5432'
     volumes:
-      - spacecraft-pgdata:/var/lib/postgresql/data
+      - plan-b-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-spacecraft} -d ${POSTGRES_DB:-spacecraft}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-plan-b} -d ${POSTGRES_DB:-plan-b}']
       interval: 5s
       timeout: 5s
       retries: 10
 
   adminer:
     image: adminer:4
-    container_name: spacecraft-adminer
+    container_name: plan-b-adminer
     restart: unless-stopped
     depends_on:
       postgres:
@@ -29,4 +29,4 @@ services:
     profiles: ['tools']
 
 volumes:
-  spacecraft-pgdata:
+  plan-b-pgdata:

@@ -4,8 +4,8 @@ import {
   createSampleProject,
   currentLevel,
   planStats,
-} from '@spacecraft/shared';
-import type { FloorPlan, Project } from '@spacecraft/shared';
+} from '@plan-b/shared';
+import type { FloorPlan, Project } from '@plan-b/shared';
 import type { PlanCommand } from '@/editor/commands';
 import {
   canRedo,

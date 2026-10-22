@@ -27,11 +27,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @spacecraft/api prisma:generate
+        run: pnpm --filter @plan-b/api prisma:generate
 
       # The API typechecks against the shared package's emitted declarations.
       - name: Build the shared package
-        run: pnpm --filter @spacecraft/shared build
+        run: pnpm --filter @plan-b/shared build
 
       - name: Lint
         run: pnpm lint
@@ -75,13 +75,13 @@ jobs:
       # The suite drives a real WebGL scene, so it needs the full Chromium rather than the
       # headless shell.
       - name: Install Playwright Chromium
-        run: pnpm --filter @spacecraft/web exec playwright install --with-deps chromium
+        run: pnpm --filter @plan-b/web exec playwright install --with-deps chromium
 
       - name: Build the web app
-        run: pnpm --filter @spacecraft/shared build && pnpm --filter @spacecraft/web build
+        run: pnpm --filter @plan-b/shared build && pnpm --filter @plan-b/web build
 
       - name: Run Playwright
-        run: pnpm --filter @spacecraft/web test:e2e
+        run: pnpm --filter @plan-b/web test:e2e
 
       - name: Upload report
         if: ${{ !cancelled() }}
@@ -99,19 +99,19 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: spacecraft
-          POSTGRES_PASSWORD: spacecraft
-          POSTGRES_DB: spacecraft
+          POSTGRES_USER: plan-b
+          POSTGRES_PASSWORD: plan-b
+          POSTGRES_DB: plan-b
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U spacecraft -d spacecraft"
+          --health-cmd "pg_isready -U plan-b -d plan-b"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
 
     env:
-      DATABASE_URL: postgresql://spacecraft:spacecraft@localhost:5432/spacecraft?schema=public
+      DATABASE_URL: postgresql://plan-b:plan-b@localhost:5432/plan-b?schema=public
 
     steps:
       - uses: actions/checkout@v4
@@ -129,20 +129,20 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply the committed migrations
-        run: pnpm --filter @spacecraft/api exec prisma migrate deploy
+        run: pnpm --filter @plan-b/api exec prisma migrate deploy
 
       # Catches a schema.prisma edit that nobody turned into a migration: the diff between the
       # live database and the datamodel must be empty.
       - name: Assert the schema matches the migrations
         run: >-
-          pnpm --filter @spacecraft/api exec prisma migrate diff
+          pnpm --filter @plan-b/api exec prisma migrate diff
           --from-url "$DATABASE_URL"
           --to-schema-datamodel prisma/schema.prisma
           --exit-code
 
       # The seed is TypeScript and imports the generated client's types.
       - name: Generate Prisma client
-        run: pnpm --filter @spacecraft/api exec prisma generate
+        run: pnpm --filter @plan-b/api exec prisma generate
 
       - name: Seed the demo project
-        run: pnpm --filter @spacecraft/api exec ts-node prisma/seed.ts
+        run: pnpm --filter @plan-b/api exec ts-node prisma/seed.ts

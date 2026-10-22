@@ -4,7 +4,7 @@ import {
   type EntityRef,
   type OpeningKind,
   type Vec2,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { PLAN_COLORS, withAlpha } from './colors';
 import { furnitureHandles } from './scene';
 import type { PlanScene, SceneFurniture, SceneOpening, SceneWall } from './scene';

@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react';
-import { parseMeters } from '@spacecraft/shared';
+import { parseMeters } from '@plan-b/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';

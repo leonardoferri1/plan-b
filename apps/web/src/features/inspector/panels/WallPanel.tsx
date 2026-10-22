@@ -7,7 +7,7 @@ import {
   openingsOfWall,
   wallLength,
   type Wall,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { Button } from '@/components/ui/button';
 import { deleteEntities, setWallLength, setWallProperties } from '@/editor/commands';
 import { useProjectStore } from '@/store/project-store';

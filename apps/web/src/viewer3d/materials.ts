@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { getMaterial, type MaterialPreset } from '@spacecraft/shared';
+import { getMaterial, type MaterialPreset } from '@plan-b/shared';
 
 /**
  * three.js materials for the catalog presets.

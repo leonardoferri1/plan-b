@@ -22,9 +22,9 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
-    .setTitle('SpaceCraft API')
+    .setTitle('Plan B API')
     .setDescription(
-      'Persistence for SpaceCraft floor plans. Plans are stored as schema-versioned JSON and ' +
+      'Persistence for Plan B floor plans. Plans are stored as schema-versioned JSON and ' +
         'validated with the same zod schemas the editor uses. There is no authentication in ' +
         'this MVP: projects are scoped to an anonymous demo workspace id and are disposable.',
     )
@@ -34,7 +34,7 @@ async function bootstrap(): Promise<void> {
     .build();
 
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config), {
-    customSiteTitle: 'SpaceCraft API',
+    customSiteTitle: 'Plan B API',
     swaggerOptions: { persistAuthorization: true },
   });
 
@@ -42,7 +42,7 @@ async function bootstrap(): Promise<void> {
   await app.listen(port);
 
   const logger = new Logger('Bootstrap');
-  logger.log(`SpaceCraft API on http://localhost:${port}/api`);
+  logger.log(`Plan B API on http://localhost:${port}/api`);
   logger.log(`OpenAPI docs on http://localhost:${port}/docs`);
 }
 

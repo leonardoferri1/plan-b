@@ -1,7 +1,7 @@
 import { INestApplication, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { createSamplePlan, createSampleProject } from '@spacecraft/shared';
+import { createSamplePlan, createSampleProject } from '@plan-b/shared';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 

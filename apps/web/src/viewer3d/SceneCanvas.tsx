@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { Grid, TransformControls } from '@react-three/drei';
-import { currentLevel, levelBounds, type EntityRef } from '@spacecraft/shared';
+import { currentLevel, levelBounds, type EntityRef } from '@plan-b/shared';
 import { moveFurniture } from '@/editor/commands';
 import { useEditorStore } from '@/store/editor-store';
 import { useProjectStore } from '@/store/project-store';

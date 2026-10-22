@@ -12,6 +12,6 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!src/main.ts', '!src/**/*.spec.ts'],
   coverageDirectory: './coverage',
   moduleNameMapper: {
-    '^@spacecraft/shared$': '<rootDir>/../../packages/shared/src/index.ts',
+    '^@plan-b/shared$': '<rootDir>/../../packages/shared/src/index.ts',
   },
 };

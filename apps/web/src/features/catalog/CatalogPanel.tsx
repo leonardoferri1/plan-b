@@ -5,7 +5,7 @@ import {
   FURNITURE_CATEGORIES,
   formatCentimeters,
   type CatalogItem,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -29,7 +29,7 @@ function CatalogCard({ item }: { item: CatalogItem }): JSX.Element {
         draggable
         aria-pressed={armed}
         onDragStart={(event) => {
-          event.dataTransfer.setData('application/x-spacecraft-item', item.id);
+          event.dataTransfer.setData('application/x-plan-b-item', item.id);
           event.dataTransfer.effectAllowed = 'copy';
         }}
         onClick={() => armCatalogItem(armed ? null : item.id)}

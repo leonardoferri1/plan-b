@@ -1,5 +1,5 @@
 import { PrismaClient, type Prisma } from '@prisma/client';
-import { createSamplePlan } from '@spacecraft/shared';
+import { createSamplePlan } from '@plan-b/shared';
 
 const prisma = new PrismaClient();
 

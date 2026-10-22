@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { EntityRef, Vec2 } from '@spacecraft/shared';
+import type { EntityRef, Vec2 } from '@plan-b/shared';
 import { clamp } from '@/lib/utils';
 
 export type ToolId = 'select' | 'wall' | 'room' | 'door' | 'window' | 'furniture' | 'measure';

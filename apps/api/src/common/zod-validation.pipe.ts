@@ -2,7 +2,7 @@ import { BadRequestException, type ArgumentMetadata, type PipeTransform } from '
 import type { ZodSchema } from 'zod';
 
 /**
- * Validates a request body with a zod schema from `@spacecraft/shared`.
+ * Validates a request body with a zod schema from `@plan-b/shared`.
  *
  * The exact same schema guards the browser's JSON import and its localStorage payload, so a
  * plan that the editor considers valid is accepted here, and one it would reject never

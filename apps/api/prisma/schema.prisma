@@ -1,4 +1,4 @@
-// SpaceCraft persistence schema.
+// Plan B persistence schema.
 //
 // A project is stored as a name plus the floor plan as JSONB. The plan is a deeply nested,
 // schema-versioned document that is always read and written as a whole, so normalising walls,

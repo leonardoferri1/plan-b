@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSampleLevel } from '@spacecraft/shared';
+import { createSampleLevel } from '@plan-b/shared';
 import { buildScene, furnitureHandles } from './scene';
 import { hitTest, hitTestRect, hitsFurniture } from './hit-test';
 

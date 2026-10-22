@@ -1,5 +1,5 @@
 import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { createSamplePlan } from '@spacecraft/shared';
+import { createSamplePlan } from '@plan-b/shared';
 import type { Project as ProjectRow } from '@prisma/client';
 import { ProjectsService } from './projects.service';
 import type { PrismaService } from '../prisma/prisma.service';

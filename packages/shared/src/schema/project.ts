@@ -64,7 +64,7 @@ export interface ProjectParseResult {
 }
 
 /**
- * Parses an arbitrary payload — a `.spacecraft.json` file, a localStorage entry or an API
+ * Parses an arbitrary payload — a `.plan-b.json` file, a localStorage entry or an API
  * response — migrating old schema versions before validating.
  */
 export function parseProject(value: unknown): ProjectParseResult {

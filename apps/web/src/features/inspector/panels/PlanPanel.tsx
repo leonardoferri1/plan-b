@@ -1,4 +1,4 @@
-import { MATERIAL_PRESETS, formatArea, formatMeters } from '@spacecraft/shared';
+import { MATERIAL_PRESETS, formatArea, formatMeters } from '@plan-b/shared';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {

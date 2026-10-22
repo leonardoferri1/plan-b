@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import type { ArgumentMetadata } from '@nestjs/common';
-import { createProjectSchema, createSamplePlan, updateProjectSchema } from '@spacecraft/shared';
+import { createProjectSchema, createSamplePlan, updateProjectSchema } from '@plan-b/shared';
 import { ZodValidationPipe } from './zod-validation.pipe';
 
 const metadata: ArgumentMetadata = { type: 'body' };

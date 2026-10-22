@@ -1,4 +1,4 @@
-# SpaceCraft — Implementation Plan
+# Plan B — Implementation Plan
 
 > Interactive 2D/3D interior design studio. One canonical document model, two synchronized
 > renderers, a command-based history, and a thin persistence layer that degrades gracefully
@@ -9,17 +9,17 @@
 ## 1. Architecture
 
 ```
-spacecraft/
-├─ packages/shared        @spacecraft/shared  — domain model, geometry, catalog, validation
-├─ apps/web               @spacecraft/web     — React + Vite editor (2D canvas + R3F scene)
-└─ apps/api               @spacecraft/api     — NestJS + Prisma + PostgreSQL REST API
+plan-b/
+├─ packages/shared        @plan-b/shared  — domain model, geometry, catalog, validation
+├─ apps/web               @plan-b/web     — React + Vite editor (2D canvas + R3F scene)
+└─ apps/api               @plan-b/api     — NestJS + Prisma + PostgreSQL REST API
 ```
 
 ### Layering (strictly one-directional)
 
 ```
             ┌──────────────────────────────────────────────┐
-            │              @spacecraft/shared              │
+            │              @plan-b/shared              │
             │   domain types · zod schemas · geometry ·    │
             │   catalog · materials · migrations           │
             └───────────────┬──────────────────┬───────────┘
@@ -62,7 +62,7 @@ FloorPlan (meters, canonical)
 
 ---
 
-## 2. Domain model (`@spacecraft/shared`)
+## 2. Domain model (`@plan-b/shared`)
 
 | Entity          | Key fields                                                          |
 | --------------- | ------------------------------------------------------------------- |

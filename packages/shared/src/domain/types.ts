@@ -1,5 +1,5 @@
 /**
- * SpaceCraft canonical domain model.
+ * Plan B canonical domain model.
  *
  * Every length in this file is expressed in **meters**, including the persisted wire format.
  * The 2D editor and the 3D viewer are both pure projections of these structures — there is no

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { parseProject, type Project } from '@spacecraft/shared';
+import { parseProject, type Project } from '@plan-b/shared';
 import { useEditorStore } from '@/store/editor-store';
 import { useProjectStore } from '@/store/project-store';
 import {

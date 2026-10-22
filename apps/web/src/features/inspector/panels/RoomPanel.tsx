@@ -5,7 +5,7 @@ import {
   formatMeters,
   roomArea,
   type Room,
-} from '@spacecraft/shared';
+} from '@plan-b/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { setRoomProperties } from '@/editor/commands';
